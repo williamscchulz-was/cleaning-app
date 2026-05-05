@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { ArrowLeft, Plus } from 'lucide-react';
-import { FreqLabel, ListRow } from '../components/primitives';
-import { AREAS, AREA_ICONS, ICON_FALLBACK } from '../lib/constants';
+import { ChevronLeft, Plus } from 'lucide-react';
+import { Row, TitleHeader } from '../components/ui';
+import { AREAS, AREA_ICONS, FREQUENCIES, ICON_FALLBACK } from '../lib/constants';
 
 export default function Catalogo({ tasks, onAdd, onEdit, onBack }) {
   const grouped = useMemo(() => {
@@ -13,62 +13,54 @@ export default function Catalogo({ tasks, onAdd, onEdit, onBack }) {
   }, [tasks]);
 
   return (
-    <>
-      <div className="surf-accent px-5 pt-2 pb-7">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={onBack}
-            className="w-10 h-10 -ml-2 flex items-center justify-center rounded-full active:bg-white/10 transition"
-          >
-            <ArrowLeft className="w-5 h-5 text-white" strokeWidth={2.2} />
-          </button>
-          <button
-            onClick={onAdd}
-            className="w-10 h-10 flex items-center justify-center rounded-full active:bg-white/10 transition"
-          >
-            <Plus className="w-5 h-5 text-white" strokeWidth={2.5} />
-          </button>
-        </div>
-        <div className="mt-5">
-          <div className="font-display font-extrabold text-white text-[24px] leading-tight">
-            Catálogo
-          </div>
-          <div className="font-body text-white/85 text-[14px] mt-0.5">
-            {tasks.length} {tasks.length === 1 ? 'tarefa cadastrada' : 'tarefas cadastradas'}
-          </div>
-        </div>
+    <div className="pb-8">
+      <div className="px-3 pt-2 flex items-center justify-between">
+        <button onClick={onBack} className="flex items-center gap-1 px-1 h-9 rounded-full active:scale-95 transition txt-accent">
+          <ChevronLeft size={20} strokeWidth={2.5} />
+          <span className="text-[15px] font-medium">Início</span>
+        </button>
+        <button
+          onClick={onAdd}
+          className="w-9 h-9 rounded-full surf-accent-soft txt-accent flex items-center justify-center active:scale-95 transition"
+        >
+          <Plus size={18} strokeWidth={2.5} />
+        </button>
       </div>
+
+      <TitleHeader
+        kicker={`${tasks.length} ${tasks.length === 1 ? 'tarefa cadastrada' : 'tarefas cadastradas'}`}
+        title="Catálogo"
+      />
 
       {tasks.length === 0 ? (
         <div className="px-5 pt-12 text-center">
-          <p className="font-display font-bold text-[16px] txt-primary">
+          <p className="text-[16px] font-semibold txt-primary">
             Nenhuma tarefa ainda
           </p>
-          <p className="font-body text-[13px] txt-muted mt-1.5">
+          <p className="text-[13px] txt-muted mt-1.5">
             Toque no <span className="font-bold">+</span> acima pra cadastrar a primeira.
           </p>
         </div>
       ) : (
-        <div className="pb-24 -mt-2">
-          {grouped.map(([area, items], gi) => {
-            const Icon = AREA_ICONS[area] || ICON_FALLBACK;
+        <div className="space-y-7 mt-4">
+          {grouped.map(([area, items]) => {
+            const A = AREA_ICONS[area] || ICON_FALLBACK;
             return (
-              <section key={area} className="fade-slide" style={{ animationDelay: `${gi * 30}ms` }}>
-                <div className="flex items-center gap-2 px-5 mt-6 mb-2.5">
-                  <Icon className="w-[15px] h-[15px] txt-muted" strokeWidth={2.2} />
-                  <h3 className="font-display font-extrabold text-[13px] uppercase tracking-wider txt-primary">
+              <section key={area} className="px-4 fade-slide">
+                <div className="flex items-center gap-2 px-4 mb-1.5">
+                  <A size={13} className="txt-muted" strokeWidth={2.2} />
+                  <h3 className="text-[13px] font-semibold uppercase tracking-wider txt-muted">
                     {area}
                   </h3>
                 </div>
-                <div className="mx-5 surf-card rounded-2xl shadow-card overflow-hidden">
+                <div className="surf-card rounded-xl overflow-hidden">
                   {items.map((t, i) => (
-                    <ListRow
+                    <Row
                       key={t.id}
                       title={t.name}
-                      description={null}
-                      right={<FreqLabel freq={t.frequencyKey} />}
                       onClick={() => onEdit(t)}
                       isLast={i === items.length - 1}
+                      trailingText={FREQUENCIES[t.frequencyKey]?.label}
                     />
                   ))}
                 </div>
@@ -77,6 +69,6 @@ export default function Catalogo({ tasks, onAdd, onEdit, onBack }) {
           })}
         </div>
       )}
-    </>
+    </div>
   );
 }

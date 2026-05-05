@@ -51,61 +51,61 @@ export default function TaskSheet({ open, task, onClose, onSave, onDelete }) {
   }
 
   return (
-    <div className="absolute inset-0 z-30 flex items-end justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-30 flex items-end justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full surf-paper rounded-t-[28px] sheet-up max-h-[88%] overflow-y-auto no-scrollbar shadow-2xl"
+        className="relative w-full sm:w-[440px] sm:mb-6 surf-bg rounded-t-[28px] sm:rounded-[28px] sheet-up max-h-[88vh] overflow-y-auto no-scrollbar"
       >
-        <div className="sticky top-0 surf-paper px-5 pt-4 pb-3 flex items-center justify-between border-b bd-hairline">
+        <div className="sticky top-0 z-10 surf-bg px-4 pt-3 pb-3 flex items-center justify-between border-b bd-hairline" style={{ borderBottomWidth: '0.5px' }}>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full surf-elev flex items-center justify-center"
+            className="w-9 h-9 rounded-full surf-section flex items-center justify-center"
           >
-            <X className="w-4 h-4 txt-primary" strokeWidth={2.2} />
+            <X size={16} strokeWidth={2.4} />
           </button>
-          <h2 className="font-display font-extrabold text-[16px] txt-primary">
+          <h2 className="text-[16px] font-semibold txt-primary">
             {isEdit ? 'Editar tarefa' : 'Nova tarefa'}
           </h2>
           <button
             onClick={handleSave}
             disabled={!name.trim() || busy}
-            className="px-4 h-9 rounded-full surf-accent text-white font-display font-bold text-[13px] disabled:opacity-40"
+            className="px-3 h-9 rounded-full surf-accent text-white text-[14px] font-semibold disabled:opacity-40"
           >
-            {busy ? '...' : 'Salvar'}
+            {busy ? '…' : 'Salvar'}
           </button>
         </div>
 
-        <div className="p-5 space-y-6">
-          <div>
-            <label className="font-display text-[11px] font-bold uppercase tracking-wider txt-muted ml-1">Nome</label>
+        <div className="p-4 space-y-6">
+          <Field label="Nome">
             <input
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ex.: Limpar a geladeira por dentro"
-              className="mt-1.5 w-full surf-card rounded-2xl px-4 py-3 font-body text-[15px] txt-primary placeholder:txt-subtle outline-none transition shadow-card focus:shadow-[0_0_0_2px_var(--accent)]"
+              className="w-full surf-card rounded-xl px-4 py-3 text-[16px] txt-primary placeholder:txt-subtle outline-none focus:ring-accent transition"
             />
-          </div>
+          </Field>
 
-          <div>
-            <label className="font-display text-[11px] font-bold uppercase tracking-wider txt-muted ml-1">Área</label>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {AREAS.map((a) => (
-                <button
-                  key={a}
-                  onClick={() => setArea(a)}
-                  className={`px-3.5 py-2 rounded-full font-body text-[13px] font-semibold transition ${area === a ? 'surf-accent text-white' : 'surf-card txt-primary shadow-card'}`}
-                >
-                  {a}
-                </button>
-              ))}
+          <Field label="Área">
+            <div className="flex flex-wrap gap-2">
+              {AREAS.map((a) => {
+                const active = area === a;
+                return (
+                  <button
+                    key={a}
+                    onClick={() => setArea(a)}
+                    className={`px-3.5 py-2 rounded-full text-[13.5px] font-medium transition ${active ? 'surf-accent text-white' : 'surf-card txt-primary'}`}
+                  >
+                    {a}
+                  </button>
+                );
+              })}
             </div>
-          </div>
+          </Field>
 
-          <div>
-            <label className="font-display text-[11px] font-bold uppercase tracking-wider txt-muted ml-1">Frequência</label>
-            <div className="mt-2 grid grid-cols-2 gap-2">
+          <Field label="Frequência">
+            <div className="grid grid-cols-2 gap-2">
               {FREQUENCY_KEYS.map((k) => {
                 const f = FREQUENCIES[k];
                 const active = frequencyKey === k;
@@ -113,43 +113,54 @@ export default function TaskSheet({ open, task, onClose, onSave, onDelete }) {
                   <button
                     key={k}
                     onClick={() => setFrequencyKey(k)}
-                    className={`flex items-center justify-between px-4 py-3 rounded-2xl text-left transition shadow-card ${active ? 'surf-tint ring-2 ring-accent' : 'surf-card'}`}
+                    className={`flex items-center justify-between px-4 py-3 rounded-xl text-left transition ${active ? 'surf-accent-soft' : 'surf-card'}`}
+                    style={active ? { boxShadow: '0 0 0 1.5px var(--accent) inset' } : undefined}
                   >
                     <div>
-                      <div className="font-display font-bold text-[14px] txt-primary">{f.label}</div>
-                      <div className="font-body text-[11.5px] txt-muted mt-0.5">
+                      <div className="text-[14px] font-semibold txt-primary">{f.label}</div>
+                      <div className="text-[11.5px] txt-muted mt-0.5">
                         {f.weeks === 1 ? 'toda semana' : `a cada ${f.weeks} semanas`}
                       </div>
                     </div>
-                    {active && <Check className="w-4 h-4 txt-accent" strokeWidth={3} />}
+                    {active && <Check size={16} className="txt-accent" strokeWidth={3} />}
                   </button>
                 );
               })}
             </div>
-          </div>
+          </Field>
 
-          <div>
-            <label className="font-display text-[11px] font-bold uppercase tracking-wider txt-muted ml-1">Observações</label>
+          <Field label="Observações">
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Detalhes, lembretes, locais específicos…"
               rows={3}
-              className="mt-1.5 w-full surf-card rounded-2xl px-4 py-3 font-body text-[14px] txt-primary placeholder:txt-subtle outline-none resize-none transition shadow-card focus:shadow-[0_0_0_2px_var(--accent)]"
+              className="w-full surf-card rounded-xl px-4 py-3 text-[15px] txt-primary placeholder:txt-subtle outline-none resize-none focus:ring-accent transition"
             />
-          </div>
+          </Field>
 
           {isEdit && (
             <button
               onClick={handleDelete}
               disabled={busy}
-              className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-2xl bg-rose-500/10 text-rose-500 font-display font-bold text-[13px] disabled:opacity-40"
+              className="w-full inline-flex items-center justify-center gap-2 py-3.5 rounded-xl surf-card txt-danger text-[15px] font-semibold disabled:opacity-40"
             >
-              <Trash2 className="w-4 h-4" strokeWidth={2.2} /> Excluir tarefa
+              <Trash2 size={16} strokeWidth={2.2} /> Excluir tarefa
             </button>
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <div>
+      <label className="text-[12px] font-semibold uppercase tracking-wider txt-muted ml-1">
+        {label}
+      </label>
+      <div className="mt-1.5">{children}</div>
     </div>
   );
 }

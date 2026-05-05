@@ -4,18 +4,23 @@ import SimoneToday from './SimoneToday';
 export default function Preview({ items, onBack }) {
   return (
     <div className="relative">
-      <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 inline-flex items-center gap-1.5 surf-invert rounded-full px-3 py-1.5 text-[10px] font-bold tracking-wider uppercase shadow-lg">
-        <Eye className="w-3 h-3" strokeWidth={2.5} /> Visualizando como Simone
+      <div className="sticky top-0 z-10 px-3 pt-2 pb-2 surf-bg flex items-center justify-between">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1 px-1 h-9 rounded-full active:scale-95 transition txt-accent"
+        >
+          <ArrowLeft size={18} strokeWidth={2.5} />
+          <span className="text-[15px] font-medium">Voltar</span>
+        </button>
+        <div className="inline-flex items-center gap-1.5 surf-accent-soft txt-accent rounded-full px-3 py-1 text-[11px] font-bold tracking-wider uppercase">
+          <Eye size={12} strokeWidth={2.5} />
+          Como Simone
+        </div>
+        <span className="w-9" />
       </div>
       <div className="opacity-95 pointer-events-none select-none">
         <SimoneToday items={items} readOnly />
       </div>
-      <button
-        onClick={onBack}
-        className="fixed bottom-24 left-1/2 -translate-x-1/2 z-20 inline-flex items-center gap-2 px-5 h-11 rounded-full surf-invert font-display font-bold text-[13px] shadow-lg active:scale-[0.98] transition"
-      >
-        <ArrowLeft className="w-4 h-4" strokeWidth={2.5} /> Voltar para admin
-      </button>
     </div>
   );
 }

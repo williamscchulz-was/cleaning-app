@@ -1,39 +1,52 @@
-import { Check, MoreHorizontal } from 'lucide-react';
-import { FreqLabel } from './primitives';
+import { ChevronRight, MoreHorizontal } from 'lucide-react';
+import { CheckCircle } from './ui';
+import { FREQUENCIES } from '../lib/constants';
 
-export default function TaskRow({ task, done, onToggle, onSkip, last }) {
+export default function TaskRow({ task, done, onToggle, onSkip, isLast }) {
+  const freqLabel = FREQUENCIES[task.frequencyKey]?.label;
+
   return (
-    <li className="relative">
+    <div
+      className={`flex items-center gap-3 pl-4 pr-2 py-3 ${!isLast ? 'border-b bd-hairline' : ''}`}
+      style={!isLast ? { borderBottomWidth: '0.5px' } : undefined}
+    >
+      <button onClick={onToggle} disabled={!onToggle} className="shrink-0">
+        <CheckCircle checked={done} />
+      </button>
       <button
         onClick={onToggle}
-        className={`w-full flex items-center gap-3 px-4 py-3 ${onSkip && !done ? 'pr-11' : ''} surf-hover transition ${!last ? 'border-b bd-hairline' : ''}`}
+        disabled={!onToggle}
+        className="flex-1 min-w-0 text-left disabled:cursor-default"
       >
-        <span
-          className={`w-[22px] h-[22px] rounded-full flex items-center justify-center shrink-0 transition-all ${done ? 'surf-accent' : 'border-[1.5px] bd-subtle'}`}
+        <div
+          className="text-[16px] leading-tight truncate"
+          style={{
+            color: done ? 'var(--text-muted)' : 'var(--text)',
+            textDecoration: done ? 'line-through' : 'none',
+          }}
         >
-          {done && <Check className="w-[14px] h-[14px] text-white check-pop" strokeWidth={3} />}
-        </span>
-        <div className="flex-1 min-w-0 text-left">
-          <div className={`font-body text-[15px] leading-snug truncate transition ${done ? 'txt-subtle line-through font-normal' : 'txt-primary font-semibold'}`}>
-            {task.name}
-          </div>
-          {!done && task.notes && (
-            <div className="font-body text-[12px] txt-accent mt-0.5 truncate">
-              {task.notes}
-            </div>
-          )}
+          {task.name}
         </div>
-        {!done && <FreqLabel freq={task.frequencyKey} />}
+        {!done && task.notes && (
+          <div className="text-[12.5px] mt-1 truncate txt-accent">
+            {task.notes}
+          </div>
+        )}
       </button>
-      {onSkip && !done && (
+      {!done && freqLabel && (
+        <span className="text-[13px] txt-muted shrink-0">{freqLabel}</span>
+      )}
+      {onSkip && !done ? (
         <button
-          onClick={(e) => { e.stopPropagation(); onSkip(); }}
-          className="absolute top-1/2 -translate-y-1/2 right-1.5 w-8 h-8 rounded-full flex items-center justify-center txt-muted surf-hover transition"
+          onClick={onSkip}
+          className="w-8 h-8 rounded-full flex items-center justify-center txt-muted shrink-0 active:scale-95 transition"
           aria-label="Outras opções"
         >
-          <MoreHorizontal className="w-[16px] h-[16px]" strokeWidth={2.2} />
+          <MoreHorizontal size={16} />
         </button>
+      ) : (
+        <ChevronRight size={16} className="txt-subtle shrink-0 mr-1" />
       )}
-    </li>
+    </div>
   );
 }

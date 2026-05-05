@@ -1,5 +1,5 @@
 import { RotateCcw } from 'lucide-react';
-import { PrimaryButton } from '../components/primitives';
+import { PrimaryButton } from '../components/ui';
 import { FREQUENCIES } from '../lib/constants';
 
 export default function SkipSheet({ open, task, onClose, onConfirm }) {
@@ -8,21 +8,21 @@ export default function SkipSheet({ open, task, onClose, onConfirm }) {
   const nextLabel = f.weeks === 1 ? 'na próxima segunda' : `daqui ${f.weeks} semanas`;
 
   return (
-    <div className="absolute inset-0 z-30 flex items-end justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-30 flex items-end justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full surf-paper rounded-t-[28px] sheet-up shadow-2xl pb-6"
+        className="relative w-full sm:w-[440px] sm:mb-6 surf-bg rounded-t-[28px] sm:rounded-[28px] sheet-up pb-6"
       >
         <div className="px-5 pt-5 pb-4 text-center">
-          <div className="mx-auto w-12 h-12 rounded-full surf-tint flex items-center justify-center">
-            <RotateCcw className="w-5 h-5 txt-accent" strokeWidth={2.2} />
+          <div className="mx-auto w-12 h-12 rounded-full surf-accent-soft flex items-center justify-center">
+            <RotateCcw size={20} className="txt-accent" strokeWidth={2.2} />
           </div>
-          <h2 className="font-display font-extrabold text-[18px] txt-primary mt-3">
+          <h2 className="text-[18px] font-semibold mt-3 txt-primary">
             Não consegui fazer hoje
           </h2>
-          <p className="font-body text-[14px] txt-muted mt-1.5 leading-relaxed">
-            <span className="font-bold txt-primary">{task.name}</span><br />
+          <p className="text-[14px] txt-muted mt-1.5 leading-relaxed">
+            <span className="font-semibold txt-primary">{task.name}</span><br />
             vai voltar a aparecer {nextLabel}.
           </p>
         </div>
@@ -30,7 +30,7 @@ export default function SkipSheet({ open, task, onClose, onConfirm }) {
           <PrimaryButton onClick={onConfirm} fullWidth>Adiar pra próxima</PrimaryButton>
           <button
             onClick={onClose}
-            className="w-full py-3 rounded-full surf-elev txt-primary font-display font-bold text-[13px]"
+            className="w-full py-3 rounded-full surf-card txt-primary text-[14px] font-semibold"
           >
             Cancelar
           </button>

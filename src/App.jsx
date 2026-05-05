@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Sprout } from 'lucide-react';
 import MocksGallery from './mocks/MocksGallery';
-import StatusBar from './components/StatusBar';
 import BottomDock from './components/BottomDock';
+import { ThemeToggle } from './components/ui';
 import PickerScreen from './screens/PickerScreen';
 import SimoneToday from './screens/SimoneToday';
 import AdminHome from './screens/AdminHome';
@@ -13,43 +13,49 @@ import TaskSheet from './sheets/TaskSheet';
 import SkipSheet from './sheets/SkipSheet';
 import { useAuth } from './hooks/useAuth';
 import { useDueTasks } from './hooks/useDueTasks';
+import { useTheme } from './hooks/useTheme';
 import {
   createTask, deactivateTask, deleteCompletion, markCompletion, updateTask,
 } from './lib/tasksApi';
 import { isSameDay } from './lib/dates';
 import { PEOPLE } from './lib/constants';
 
+function isMocksRoute() {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('mocks') === '1';
+}
+
 function Splash() {
   return (
-    <div className="min-h-screen flex items-center justify-center surf-paper">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl surf-accent text-white shadow-lg animate-pulse">
-        <Sprout size={32} />
+    <div className="min-h-screen flex items-center justify-center surf-bg">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl surf-accent text-white animate-pulse">
+        <Sprout size={28} />
       </div>
     </div>
   );
 }
 
-function PhoneFrame({ children }) {
+// Phone-shaped container on desktop, full width on mobile.
+function Shell({ children, theme, onToggleTheme }) {
   return (
-    <div className="theme-light font-body min-h-screen w-full surf-outer flex items-center justify-center p-0 sm:p-6 transition-colors">
-      <div className="relative w-full sm:w-[400px] sm:h-[860px] h-screen surf-paper sm:rounded-[44px] overflow-hidden shadow-none sm:shadow-[0_30px_80px_-30px_rgba(0,0,0,0.30),0_0_0_10px_#000000,0_0_0_12px_#1C1C1E]">
+    <div className="min-h-screen w-full surf-bg">
+      <div className="relative max-w-[440px] mx-auto min-h-screen flex flex-col">
+        <div className="absolute top-2 right-3 z-30">
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+        </div>
         {children}
       </div>
     </div>
   );
 }
 
-function isMocksRoute() {
-  if (typeof window === 'undefined') return false;
-  return new URLSearchParams(window.location.search).get('mocks') === '1';
-}
-
 export default function App() {
+  const { theme, toggle: toggleTheme } = useTheme();
   if (isMocksRoute()) return <MocksGallery />;
-  return <RealApp />;
+  return <RealApp theme={theme} toggleTheme={toggleTheme} />;
 }
 
-function RealApp() {
+function RealApp({ theme, toggleTheme }) {
   const { uid, role, loading: authLoading, pickRole } = useAuth();
   const { items, completions, tasks, loading: dataLoading } = useDueTasks();
 
@@ -62,18 +68,14 @@ function RealApp() {
 
   if (!role) {
     return (
-      <PhoneFrame>
-        <StatusBar />
-        <div className="h-[calc(100%-32px)] overflow-y-auto no-scrollbar">
-          <PickerScreen onPick={pickRole} />
-        </div>
-      </PhoneFrame>
+      <Shell theme={theme} onToggleTheme={toggleTheme}>
+        <PickerScreen onPick={pickRole} />
+      </Shell>
     );
   }
 
   const isAdmin = role === 'flavia' || role === 'william';
 
-  // Toggle done for a task today. If already done today → undo (delete completion).
   async function handleToggleDone(taskId) {
     const item = items.find((it) => it.task.id === taskId);
     if (!item) return;
@@ -124,58 +126,59 @@ function RealApp() {
   const adminPerson = role === 'flavia' ? PEOPLE.flavia : PEOPLE.william;
 
   return (
-    <PhoneFrame>
-      <StatusBar />
-      <div className="h-[calc(100%-32px)] overflow-y-auto no-scrollbar relative">
-        {role === 'simone' && (
-          <SimoneToday
-            items={items}
-            onToggle={handleToggleDone}
-            onSkipRequest={handleSkipRequest}
-          />
-        )}
+    <Shell theme={theme} onToggleTheme={toggleTheme}>
+      <div className="flex-1 flex flex-col">
+        <main className="flex-1">
+          {role === 'simone' && (
+            <SimoneToday
+              items={items}
+              onToggle={handleToggleDone}
+              onSkipRequest={handleSkipRequest}
+            />
+          )}
 
-        {isAdmin && (
-          <>
-            {tab === 'home' && (
-              <AdminHome
-                person={adminPerson}
-                items={items}
-                onAddTask={handleAddTask}
-                goTo={setTab}
-              />
-            )}
-            {tab === 'tarefas' && (
-              <Catalogo
-                tasks={tasks}
-                onAdd={handleAddTask}
-                onEdit={handleEditTask}
-                onBack={() => setTab('home')}
-              />
-            )}
-            {tab === 'historico' && (
-              <Historico
-                completions={completions}
-                tasks={tasks}
-                onBack={() => setTab('home')}
-              />
-            )}
-            {tab === 'preview' && (
-              <Preview items={items} onBack={() => setTab('home')} />
-            )}
-          </>
-        )}
+          {isAdmin && (
+            <>
+              {tab === 'home' && (
+                <AdminHome
+                  person={adminPerson}
+                  items={items}
+                  onAddTask={handleAddTask}
+                  goTo={setTab}
+                />
+              )}
+              {tab === 'tarefas' && (
+                <Catalogo
+                  tasks={tasks}
+                  onAdd={handleAddTask}
+                  onEdit={handleEditTask}
+                  onBack={() => setTab('home')}
+                />
+              )}
+              {tab === 'historico' && (
+                <Historico
+                  completions={completions}
+                  tasks={tasks}
+                  onBack={() => setTab('home')}
+                />
+              )}
+              {tab === 'preview' && (
+                <Preview items={items} onBack={() => setTab('home')} />
+              )}
+            </>
+          )}
 
-        {dataLoading && tasks.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-12 h-12 rounded-2xl surf-accent text-white flex items-center justify-center shadow-lg animate-pulse">
-              <Sprout size={24} />
+          {dataLoading && tasks.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-12 h-12 rounded-2xl surf-accent text-white flex items-center justify-center animate-pulse">
+                <Sprout size={24} />
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </main>
 
-      {isAdmin && tab !== 'preview' && <BottomDock tab={tab} setTab={setTab} />}
+        {isAdmin && tab !== 'preview' && <BottomDock tab={tab} setTab={setTab} />}
+      </div>
 
       <TaskSheet
         open={taskSheetOpen}
@@ -190,6 +193,6 @@ function RealApp() {
         onClose={() => setSkipTarget(null)}
         onConfirm={handleSkipConfirm}
       />
-    </PhoneFrame>
+    </Shell>
   );
 }

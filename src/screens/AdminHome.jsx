@@ -1,6 +1,5 @@
-import { ChevronRight, Eye, History, ListChecks, Plus } from 'lucide-react';
-import NuHeader from '../components/NuHeader';
-import { ListRow, QuickAction, SectionHeader } from '../components/primitives';
+import { Eye, History, ListChecks, Plus } from 'lucide-react';
+import { Pill, PrimaryButton, Row, Section, TitleHeader } from '../components/ui';
 import { AREAS, AREA_ICONS, ICON_FALLBACK } from '../lib/constants';
 import { formatDateBR } from '../lib/dates';
 
@@ -11,84 +10,117 @@ export default function AdminHome({ person, items, onAddTask, goTo }) {
   const totalTasks = items.length;
 
   return (
-    <>
-      <NuHeader
-        person={person}
-        subtitle={`Hoje, ${date.weekday}, ${date.day} de ${date.month}`}
+    <div className="pb-8">
+      <TitleHeader
+        kicker={`${date.weekday}, ${date.day} de ${date.month}`}
+        title={`Olá, ${person.name}`}
+        right={<Pill>Hoje</Pill>}
       />
 
-      <div className="px-5 -mt-5 fade-slide">
-        <div className="surf-card rounded-2xl shadow-card p-5">
-          <div className="flex items-baseline justify-between">
-            <div className="font-display font-extrabold text-[15px] txt-primary">
-              Tarefas de hoje
-            </div>
-            <span className="font-body text-[12.5px] txt-muted">
-              {totalTasks} no catálogo
-            </span>
-          </div>
-          <div className="mt-3 font-display font-extrabold text-[36px] txt-primary leading-none tnum">
-            {dueCount} <span className="font-body font-normal txt-muted text-[15px]">pra Simone hoje</span>
-          </div>
-          <button
-            onClick={() => goTo('preview')}
-            className="mt-4 w-full flex items-center justify-between px-4 py-3 surf-tint rounded-xl active:scale-[0.98] transition"
-          >
-            <span className="font-display font-bold text-[13.5px] txt-accent">
-              Espiar a tela da Simone
-            </span>
-            <ChevronRight className="w-4 h-4 txt-accent" strokeWidth={2.5} />
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-7 flex items-start justify-around px-5">
-        <QuickAction Icon={Plus}       label="Nova tarefa" onClick={onAddTask} />
-        <QuickAction Icon={ListChecks} label="Catálogo"    onClick={() => goTo('tarefas')} />
-        <QuickAction Icon={History}    label="Histórico"   onClick={() => goTo('historico')} />
-        <QuickAction Icon={Eye}        label="Visualizar"  onClick={() => goTo('preview')} />
-      </div>
-
       {totalTasks === 0 ? (
-        <div className="mx-5 mt-8 surf-card rounded-2xl shadow-card p-6 text-center">
-          <p className="font-display font-bold text-[16px] txt-primary">
-            Nenhuma tarefa cadastrada
-          </p>
-          <p className="font-body text-[13px] txt-muted mt-1.5">
-            Comece criando a primeira tarefa pra Simone.
-          </p>
-          <button
-            onClick={onAddTask}
-            className="mt-4 inline-flex items-center gap-2 px-5 h-11 rounded-full surf-accent text-white font-display font-bold text-[13px]"
-          >
-            <Plus className="w-4 h-4" strokeWidth={2.5} />
-            Cadastrar primeira tarefa
-          </button>
+        <div className="px-4 mt-7">
+          <div className="surf-card rounded-xl p-6 text-center">
+            <div className="w-12 h-12 rounded-full surf-accent-soft mx-auto flex items-center justify-center">
+              <Plus className="w-5 h-5 txt-accent" strokeWidth={2.5} />
+            </div>
+            <p className="text-[17px] font-semibold mt-3">
+              Nenhuma tarefa cadastrada
+            </p>
+            <p className="text-[13.5px] txt-muted mt-1.5">
+              Comece criando a primeira tarefa pra Simone.
+            </p>
+            <div className="mt-4">
+              <PrimaryButton onClick={onAddTask} leadingIcon={Plus}>
+                Cadastrar primeira tarefa
+              </PrimaryButton>
+            </div>
+          </div>
         </div>
       ) : (
         <>
-          <SectionHeader title="Catálogo por área" action="Ver tudo" onAction={() => goTo('tarefas')} />
-          <div className="mx-5 surf-card rounded-2xl shadow-card overflow-hidden">
+          <div className="px-4 mt-7">
+            <div className="surf-card rounded-xl p-5">
+              <div className="flex items-baseline justify-between">
+                <span className="text-[13px] font-semibold uppercase tracking-wider txt-muted">
+                  Tarefas de hoje
+                </span>
+                <span className="text-[12.5px] txt-muted">
+                  {totalTasks} no catálogo
+                </span>
+              </div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-[40px] font-bold tabular-nums leading-none txt-primary">
+                  {dueCount}
+                </span>
+                <span className="text-[14px] txt-muted">
+                  pra Simone hoje
+                </span>
+              </div>
+              <button
+                onClick={() => goTo('preview')}
+                className="mt-4 w-full flex items-center justify-between px-3 h-10 rounded-lg surf-accent-soft active:scale-[0.99] transition"
+              >
+                <span className="text-[14px] font-semibold txt-accent flex items-center gap-2">
+                  <Eye size={15} strokeWidth={2.4} />
+                  Espiar a tela da Simone
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <Section title="Acesso rápido">
+            <Row
+              leading={<Icon Comp={Plus} />}
+              title="Nova tarefa"
+              onClick={onAddTask}
+            />
+            <Row
+              leading={<Icon Comp={ListChecks} />}
+              title="Catálogo"
+              subtitle={`${totalTasks} ${totalTasks === 1 ? 'tarefa' : 'tarefas'}`}
+              onClick={() => goTo('tarefas')}
+            />
+            <Row
+              leading={<Icon Comp={History} />}
+              title="Histórico"
+              onClick={() => goTo('historico')}
+              isLast
+            />
+          </Section>
+
+          <Section title="Catálogo por área" right={
+            <button onClick={() => goTo('tarefas')} className="text-[14px] font-semibold txt-accent">
+              Ver tudo
+            </button>
+          }>
             {AREAS.map((area, i) => {
               const count = items.filter((it) => it.task.area === area).length;
               if (count === 0) return null;
-              const Icon = AREA_ICONS[area] || ICON_FALLBACK;
+              const A = AREA_ICONS[area] || ICON_FALLBACK;
+              const visibleAreas = AREAS.filter((a) => items.some((it) => it.task.area === a));
+              const lastIdx = visibleAreas.length - 1;
               return (
-                <ListRow
+                <Row
                   key={area}
-                  Icon={Icon}
+                  leading={<Icon Comp={A} />}
                   title={area}
-                  description={`${count} ${count === 1 ? 'tarefa' : 'tarefas'}`}
+                  subtitle={`${count} ${count === 1 ? 'tarefa' : 'tarefas'}`}
                   onClick={() => goTo('tarefas')}
-                  isLast={i === AREAS.length - 1}
+                  isLast={visibleAreas.indexOf(area) === lastIdx}
                 />
               );
             })}
-          </div>
+          </Section>
         </>
       )}
+    </div>
+  );
+}
 
-      <div className="h-24" />
-    </>
+function Icon({ Comp }) {
+  return (
+    <div className="w-9 h-9 rounded-full surf-section flex items-center justify-center shrink-0">
+      <Comp size={17} className="txt-primary" strokeWidth={2} />
+    </div>
   );
 }
