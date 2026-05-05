@@ -20,8 +20,11 @@ export default function PickerScreen({ onPick }) {
   return (
     <div className="pb-12">
       <div className="px-5 pt-10 pb-6">
-        <AppIcon size={56} />
-        <h1 className="mt-5 text-[34px] font-bold tracking-tight leading-tight">
+        <div className="flex items-center gap-3">
+          <AppIcon size={48} />
+          <span className="text-[22px] font-bold tracking-tight txt-primary">Lumen</span>
+        </div>
+        <h1 className="mt-7 text-[34px] font-bold tracking-tight leading-tight">
           Quem é você?
         </h1>
         <p className="mt-2 text-[15px] txt-muted leading-relaxed">

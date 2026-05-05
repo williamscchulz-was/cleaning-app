@@ -1,6 +1,6 @@
 {
-  "name": "Diarista",
-  "short_name": "Diarista",
+  "name": "Lumen",
+  "short_name": "Lumen",
   "description": "Organize as tarefas semanais de limpeza da sua casa.",
   "start_url": "/cleaning-app/",
   "scope": "/cleaning-app/",

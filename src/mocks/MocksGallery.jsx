@@ -26,7 +26,7 @@ export default function MocksGallery() {
         <div className="max-w-[1280px] mx-auto px-4 py-3">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-[12px] font-semibold uppercase tracking-wider text-neutral-500">
-              Mockups Diarista
+              Mockups Lumen
             </span>
             <span className="text-[11px] text-neutral-400">/ pickeable design directions</span>
           </div>

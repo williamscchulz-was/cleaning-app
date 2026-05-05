@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const STORAGE_KEY = 'diarista-theme';
+const STORAGE_KEY = 'lumen-theme';
 
 function getSystemTheme() {
   if (typeof window === 'undefined') return 'light';
