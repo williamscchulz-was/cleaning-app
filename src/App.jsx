@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Sprout } from 'lucide-react';
 import MocksGallery from './mocks/MocksGallery';
 import BottomDock from './components/BottomDock';
+import AppIcon from './components/AppIcon';
 import { ThemeToggle } from './components/ui';
 import PickerScreen from './screens/PickerScreen';
 import SimoneToday from './screens/SimoneToday';
@@ -28,8 +28,8 @@ function isMocksRoute() {
 function Splash() {
   return (
     <div className="min-h-screen flex items-center justify-center surf-bg">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl surf-accent text-white animate-pulse">
-        <Sprout size={28} />
+      <div className="animate-pulse">
+        <AppIcon size={72} />
       </div>
     </div>
   );
@@ -180,8 +180,8 @@ function RealApp({ theme, toggleTheme }) {
 
           {dataLoading && tasks.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-12 h-12 rounded-2xl surf-accent text-white flex items-center justify-center animate-pulse">
-                <Sprout size={24} />
+              <div className="animate-pulse">
+                <AppIcon size={56} />
               </div>
             </div>
           )}
