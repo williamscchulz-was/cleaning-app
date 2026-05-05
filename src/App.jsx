@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Sprout } from 'lucide-react';
+import MocksGallery from './mocks/MocksGallery';
 import StatusBar from './components/StatusBar';
 import BottomDock from './components/BottomDock';
 import PickerScreen from './screens/PickerScreen';
@@ -38,7 +39,17 @@ function PhoneFrame({ children }) {
   );
 }
 
+function isMocksRoute() {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('mocks') === '1';
+}
+
 export default function App() {
+  if (isMocksRoute()) return <MocksGallery />;
+  return <RealApp />;
+}
+
+function RealApp() {
   const { uid, role, loading: authLoading, pickRole } = useAuth();
   const { items, completions, tasks, loading: dataLoading } = useDueTasks();
 
