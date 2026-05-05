@@ -1,11 +1,6 @@
 import { useState } from 'react';
-import { Sparkles, User } from 'lucide-react';
-
-const ROLES = [
-  { key: 'simone', label: 'Simone', subtitle: 'Diarista' },
-  { key: 'flavia', label: 'Flávia', subtitle: 'Admin' },
-  { key: 'william', label: 'William', subtitle: 'Admin' },
-];
+import { ChevronRight } from 'lucide-react';
+import { PEOPLE, ROLE_KEYS } from '../lib/constants';
 
 export default function PickerScreen({ onPick }) {
   const [busy, setBusy] = useState(null);
@@ -16,48 +11,61 @@ export default function PickerScreen({ onPick }) {
     try {
       await onPick(roleKey);
     } catch (err) {
-      console.error(err);
+      console.error('pickRole failed', err);
       setBusy(null);
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center px-6 py-10">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#820AD1] text-white shadow-lg">
-            <Sparkles size={26} />
-          </div>
-          <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">
-            Quem está usando?
-          </h1>
-          <p className="mt-1 text-sm text-neutral-500">
-            Escolha uma vez — fica salvo neste aparelho.
-          </p>
+    <>
+      <div className="surf-accent px-5 pt-3 pb-12 fade-slide">
+        <div className="font-display font-extrabold text-white text-[28px] leading-[1.1]">
+          Olá!<br />Quem é você?
+        </div>
+        <p className="font-body text-white/80 text-[14px] mt-3 leading-relaxed">
+          Toca no seu nome — vamos lembrar de você na próxima vez.
+        </p>
+      </div>
+
+      <div className="px-5 -mt-6">
+        <div className="surf-card rounded-2xl shadow-card overflow-hidden">
+          {ROLE_KEYS.map((k, i) => {
+            const p = PEOPLE[k];
+            return (
+              <button
+                key={k}
+                onClick={() => handlePick(k)}
+                disabled={busy !== null}
+                className={`w-full flex items-center gap-4 px-4 py-4 surf-hover transition disabled:opacity-50 ${i < ROLE_KEYS.length - 1 ? 'border-b bd-hairline' : ''}`}
+              >
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center font-display font-extrabold text-[18px] shrink-0"
+                  style={{ background: p.bg, color: p.textColor }}
+                >
+                  {p.initial}
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="font-display font-bold text-[16px] txt-primary">
+                    Sou {p.article} {p.name}
+                  </div>
+                  <div className="font-body text-[13px] txt-muted mt-0.5">
+                    {p.role}
+                  </div>
+                </div>
+                {busy === k ? (
+                  <span className="text-[11px] txt-muted">Salvando…</span>
+                ) : (
+                  <ChevronRight className="w-5 h-5 txt-subtle" strokeWidth={2} />
+                )}
+              </button>
+            );
+          })}
         </div>
 
-        <div className="space-y-3">
-          {ROLES.map((r) => (
-            <button
-              key={r.key}
-              onClick={() => handlePick(r.key)}
-              disabled={busy !== null}
-              className="w-full flex items-center gap-4 rounded-2xl bg-white border border-neutral-200 px-4 py-4 text-left shadow-sm hover:border-[#820AD1] hover:shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F3E8FF] text-[#820AD1]">
-                <User size={20} />
-              </div>
-              <div className="flex-1">
-                <div className="font-medium text-neutral-900">{r.label}</div>
-                <div className="text-xs text-neutral-500">{r.subtitle}</div>
-              </div>
-              {busy === r.key && (
-                <div className="text-xs text-neutral-400">Salvando…</div>
-              )}
-            </button>
-          ))}
-        </div>
+        <p className="text-center font-body text-[11.5px] txt-muted mt-6 px-6">
+          Seu celular vai lembrar da sua escolha automaticamente
+        </p>
       </div>
-    </div>
+    </>
   );
 }

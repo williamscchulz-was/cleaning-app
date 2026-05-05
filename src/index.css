@@ -1,16 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,500;0,6..12,600;0,6..12,700;0,6..12,800;0,6..12,900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html,
-body,
-#root {
-  height: 100%;
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer components {
+  .font-display { font-family: 'Nunito Sans', system-ui, -apple-system, sans-serif; letter-spacing: -0.01em; }
+  .font-body    { font-family: 'Nunito Sans', system-ui, -apple-system, sans-serif; }
+  .tnum         { font-variant-numeric: tabular-nums; }
+
+  .theme-light {
+    --bg-outer:       #F5F5F5;
+    --bg-paper:       #FFFFFF;
+    --bg-card:        #F5F5F5;
+    --bg-elev:        #EBEBEB;
+    --bg-tint:        #F0E7FB;
+    --text-primary:   #000000;
+    --text-secondary: #2D2D2D;
+    --text-muted:     #7A7A7A;
+    --text-subtle:    #B8B8B8;
+    --hairline:       #E5E5E5;
+    --hover:          rgba(0,0,0,0.04);
+    --accent:         #820AD1;
+    --on-accent:      #FFFFFF;
+    --shadow-card:    0 1px 2px rgba(0,0,0,0.04);
+  }
+  .theme-dark {
+    --bg-outer:       #000000;
+    --bg-paper:       #000000;
+    --bg-card:        #1F1F22;
+    --bg-elev:        #2D2D30;
+    --bg-tint:        #1F1432;
+    --text-primary:   #FFFFFF;
+    --text-secondary: #D4D4D4;
+    --text-muted:     #8A8A8A;
+    --text-subtle:    #5A5A5A;
+    --hairline:       #2D2D30;
+    --hover:          rgba(255,255,255,0.06);
+    --accent:         #A335E5;
+    --on-accent:      #FFFFFF;
+    --shadow-card:    0 0 0 transparent;
+  }
+
+  .surf-paper    { background-color: var(--bg-paper); }
+  .surf-card     { background-color: var(--bg-card); }
+  .surf-elev     { background-color: var(--bg-elev); }
+  .surf-tint     { background-color: var(--bg-tint); }
+  .surf-outer    { background-color: var(--bg-outer); }
+  .surf-accent   { background-color: var(--accent); }
+  .surf-hairline { background-color: var(--hairline); }
+  .surf-invert   { background-color: var(--text-primary); color: var(--bg-card); }
+
+  .dot-subtle    { background-color: var(--text-subtle); }
+  .dot-muted     { background-color: var(--text-muted); }
+  .dot-secondary { background-color: var(--text-secondary); }
+  .dot-accent    { background-color: var(--accent); }
+  .dot-accent-soft { background-color: var(--accent); opacity: 0.7; }
+
+  .surf-hover:hover  { background-color: var(--hover); }
+  .surf-hover:active { background-color: var(--hover); }
+
+  .txt-primary   { color: var(--text-primary); }
+  .txt-secondary { color: var(--text-secondary); }
+  .txt-muted     { color: var(--text-muted); }
+  .txt-subtle    { color: var(--text-subtle); }
+  .txt-accent    { color: var(--accent); }
+  .txt-on-accent { color: var(--on-accent); }
+
+  .bd-hairline { border-color: var(--hairline); }
+  .bd-subtle   { border-color: var(--text-subtle); }
+  .bd-accent   { border-color: var(--accent); }
+  .bd-primary  { border-color: var(--text-primary); }
+
+  .ring-accent  { box-shadow: 0 0 0 2px var(--accent); }
+  .shadow-card  { box-shadow: var(--shadow-card); }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-slide { animation: fadeSlide 360ms ease-out both; }
+
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.sheet-up { animation: sheetUp 320ms cubic-bezier(.2,.8,.2,1) both; }
+
+@keyframes checkPop {
+  0%   { transform: scale(0.5); opacity: 0; }
+  60%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.check-pop { animation: checkPop 280ms cubic-bezier(.34,1.56,.64,1) both; }
