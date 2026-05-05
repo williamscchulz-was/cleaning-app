@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import MocksGallery from './mocks/MocksGallery';
+import { lazy, Suspense, useState } from 'react';
 import BottomDock from './components/BottomDock';
 import AppIcon from './components/AppIcon';
 import { ThemeToggle } from './components/ui';
@@ -25,6 +24,8 @@ function isMocksRoute() {
   return new URLSearchParams(window.location.search).get('mocks') === '1';
 }
 
+const MocksGallery = lazy(() => import('./mocks/MocksGallery'));
+
 function Splash() {
   return (
     <div className="min-h-screen flex items-center justify-center surf-bg">
@@ -35,12 +36,20 @@ function Splash() {
   );
 }
 
-// Phone-shaped container on desktop, full width on mobile.
+// Fills the viewport (dvh handles iOS URL-bar collapse). Centered phone
+// column on desktop. Children render the screen content; the parent App
+// is responsible for placing scrollable areas vs fixed chrome (BottomDock).
 function Shell({ children, theme, onToggleTheme }) {
   return (
-    <div className="min-h-screen w-full surf-bg">
-      <div className="relative max-w-[440px] mx-auto min-h-screen flex flex-col">
-        <div className="absolute top-2 right-3 z-30">
+    <div className="h-[100dvh] w-full surf-bg overflow-hidden">
+      <div
+        className="relative max-w-[440px] mx-auto h-full flex flex-col"
+        style={{
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}
+      >
+        <div className="absolute top-[max(env(safe-area-inset-top),8px)] right-3 z-30">
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
         </div>
         {children}
@@ -51,7 +60,13 @@ function Shell({ children, theme, onToggleTheme }) {
 
 export default function App() {
   const { theme, toggle: toggleTheme } = useTheme();
-  if (isMocksRoute()) return <MocksGallery />;
+  if (isMocksRoute()) {
+    return (
+      <Suspense fallback={<Splash />}>
+        <MocksGallery />
+      </Suspense>
+    );
+  }
   return <RealApp theme={theme} toggleTheme={toggleTheme} />;
 }
 
@@ -69,7 +84,9 @@ function RealApp({ theme, toggleTheme }) {
   if (!role) {
     return (
       <Shell theme={theme} onToggleTheme={toggleTheme}>
-        <PickerScreen onPick={pickRole} />
+        <main className="flex-1 overflow-y-auto no-scrollbar">
+          <PickerScreen onPick={pickRole} />
+        </main>
       </Shell>
     );
   }
@@ -137,8 +154,8 @@ function RealApp({ theme, toggleTheme }) {
 
   return (
     <Shell theme={theme} onToggleTheme={toggleTheme}>
-      <div className="flex-1 flex flex-col">
-        <main className="flex-1">
+      <div className="flex-1 flex flex-col min-h-0">
+        <main className="flex-1 overflow-y-auto no-scrollbar relative">
           {role === 'simone' && (
             <SimoneToday
               items={items}

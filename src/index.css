@@ -6,6 +6,11 @@
   html, body, #root {
     height: 100%;
   }
+  html {
+    /* iOS PWA: lock height to dynamic viewport so content doesn't get
+       hidden behind the URL bar on Safari, and body doesn't bounce. */
+    height: 100dvh;
+  }
   body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
@@ -13,6 +18,18 @@
     -moz-osx-font-smoothing: grayscale;
     background: var(--bg);
     color: var(--text);
+    /* No rubber-band overscroll, no pull-to-refresh, no double-tap zoom. */
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    overflow: hidden;
+  }
+  #root {
+    height: 100dvh;
+  }
+  /* Inputs >= 16px so iOS Safari doesn't auto-zoom on focus. */
+  input, textarea, select {
+    font-size: 16px;
   }
 }
 

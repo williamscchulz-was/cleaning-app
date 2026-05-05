@@ -48,14 +48,25 @@ export default function AdminHome({ person, items, onAddTask, goTo }) {
                   {totalTasks} no catálogo
                 </span>
               </div>
-              <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-[40px] font-bold tabular-nums leading-none txt-primary">
-                  {dueCount}
-                </span>
-                <span className="text-[14px] txt-muted">
-                  pra Simone hoje
-                </span>
-              </div>
+              {dueCount > 0 ? (
+                <div className="mt-2 flex items-baseline gap-2">
+                  <span className="text-[40px] font-bold tabular-nums leading-none txt-primary">
+                    {dueCount}
+                  </span>
+                  <span className="text-[14px] txt-muted">
+                    pra Simone hoje
+                  </span>
+                </div>
+              ) : (
+                <div className="mt-2">
+                  <span className="text-[22px] font-semibold leading-tight txt-primary">
+                    Tudo em dia
+                  </span>
+                  <p className="text-[13px] txt-muted mt-0.5">
+                    Nenhuma tarefa pendente hoje.
+                  </p>
+                </div>
+              )}
               <button
                 onClick={() => goTo('preview')}
                 className="mt-4 w-full flex items-center justify-between px-3 h-10 rounded-lg surf-accent-soft active:scale-[0.99] transition"
