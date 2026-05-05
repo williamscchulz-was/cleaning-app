@@ -1,5 +1,5 @@
 import {
-  addDoc, collection, deleteDoc, doc, serverTimestamp, updateDoc,
+  addDoc, collection, deleteDoc, doc, serverTimestamp, Timestamp, updateDoc,
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -29,11 +29,11 @@ export async function deactivateTask(taskId) {
   return updateDoc(doc(db, 'tasks', taskId), { active: false });
 }
 
-export async function markCompletion({ taskId, status, uid }) {
+export async function markCompletion({ taskId, status, uid, performedAt }) {
   return addDoc(collection(db, 'completions'), {
     taskId,
     status, // 'done' | 'skipped'
-    performedAt: serverTimestamp(),
+    performedAt: performedAt ? Timestamp.fromDate(performedAt) : serverTimestamp(),
     performedBy: uid,
   });
 }

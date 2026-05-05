@@ -113,7 +113,17 @@ function RealApp({ theme, toggleTheme }) {
     if (data.id) {
       await updateTask(data.id, data);
     } else {
-      await createTask({ ...data, uid });
+      const ref = await createTask({ ...data, uid });
+      // Seed last-done so the first cycle is anchored to that date,
+      // otherwise a new task immediately appears as due today.
+      if (data.seedDate) {
+        await markCompletion({
+          taskId: ref.id,
+          status: 'done',
+          uid,
+          performedAt: data.seedDate,
+        });
+      }
     }
     handleCloseSheet();
   }

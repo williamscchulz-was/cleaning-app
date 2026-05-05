@@ -7,6 +7,8 @@ export default function TaskSheet({ open, task, onClose, onSave, onDelete }) {
   const [area, setArea] = useState(AREAS[0]);
   const [frequencyKey, setFrequencyKey] = useState('semanal');
   const [notes, setNotes] = useState('');
+  const [lastDoneMode, setLastDoneMode] = useState('never'); // 'never' | 'today' | 'custom'
+  const [lastDoneCustom, setLastDoneCustom] = useState('');
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -15,6 +17,8 @@ export default function TaskSheet({ open, task, onClose, onSave, onDelete }) {
       setArea(task?.area || AREAS[0]);
       setFrequencyKey(task?.frequencyKey || 'semanal');
       setNotes(task?.notes || '');
+      setLastDoneMode('never');
+      setLastDoneCustom('');
       setBusy(false);
     }
   }, [open, task]);
@@ -26,12 +30,24 @@ export default function TaskSheet({ open, task, onClose, onSave, onDelete }) {
     if (!name.trim() || busy) return;
     setBusy(true);
     try {
+      let seedDate = null;
+      if (!isEdit) {
+        if (lastDoneMode === 'today') {
+          seedDate = new Date();
+        } else if (lastDoneMode === 'custom' && lastDoneCustom) {
+          // <input type="date"> returns YYYY-MM-DD; treat as local midday to
+          // avoid timezone slipping the date by one day.
+          const [y, m, d] = lastDoneCustom.split('-').map(Number);
+          seedDate = new Date(y, m - 1, d, 12, 0, 0);
+        }
+      }
       await onSave({
         id: task?.id,
         name: name.trim(),
         area,
         frequencyKey,
         notes: notes.trim(),
+        seedDate,
       });
     } catch (err) {
       console.error('save task failed', err);
@@ -128,6 +144,42 @@ export default function TaskSheet({ open, task, onClose, onSave, onDelete }) {
               })}
             </div>
           </Field>
+
+          {!isEdit && (
+            <Field label="Última vez feita">
+              <p className="text-[12.5px] txt-muted -mt-0.5 mb-2 leading-snug">
+                Se já foi feita antes, o próximo ciclo conta a partir desse dia.
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { k: 'never',  label: 'Nunca' },
+                  { k: 'today',  label: 'Hoje' },
+                  { k: 'custom', label: 'Outra data' },
+                ].map(({ k, label }) => {
+                  const active = lastDoneMode === k;
+                  return (
+                    <button
+                      key={k}
+                      onClick={() => setLastDoneMode(k)}
+                      className={`px-3 py-2.5 rounded-xl text-[13.5px] font-semibold transition ${active ? 'surf-accent-soft txt-accent' : 'surf-card txt-primary'}`}
+                      style={active ? { boxShadow: '0 0 0 1.5px var(--accent) inset' } : undefined}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              {lastDoneMode === 'custom' && (
+                <input
+                  type="date"
+                  value={lastDoneCustom}
+                  max={new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => setLastDoneCustom(e.target.value)}
+                  className="mt-2 w-full surf-card rounded-xl px-4 py-3 text-[15px] txt-primary outline-none focus:ring-accent transition"
+                />
+              )}
+            </Field>
+          )}
 
           <Field label="Observações">
             <textarea
