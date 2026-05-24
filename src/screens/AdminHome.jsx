@@ -1,12 +1,21 @@
-import { Eye, History, ListChecks, Plus } from 'lucide-react';
+import { ChevronRight, Eye, History, ListChecks, Plus, User } from 'lucide-react';
 import { PrimaryButton, Row, Section, TitleHeader } from '../components/ui';
-import { AREAS, AREA_ICONS, ICON_FALLBACK } from '../lib/constants';
+import { AREAS, AREA_ICONS, ICON_FALLBACK, PEOPLE } from '../lib/constants';
 import { formatDateBR } from '../lib/dates';
 
-export default function AdminHome({ person, items, onAddTask, goTo }) {
+export default function AdminHome({ person, role, items, onAddTask, goTo }) {
   const today = new Date();
   const date = formatDateBR(today);
-  const dueCount = items.filter(({ isDue, skippedToday }) => isDue && !skippedToday).length;
+
+  // Per-assignee counts of tasks pending today.
+  const simoneDue = items.filter(
+    ({ task, isDue, skippedToday }) => task.assignedTo === 'simone' && isDue && !skippedToday,
+  ).length;
+  const mineDue = items.filter(
+    ({ task, isDue, skippedToday }) => task.assignedTo === role && isDue && !skippedToday,
+  ).length;
+  const mineTotal = items.filter(({ task }) => task.assignedTo === role).length;
+
   const totalTasks = items.length;
 
   return (
@@ -26,7 +35,7 @@ export default function AdminHome({ person, items, onAddTask, goTo }) {
               Nenhuma tarefa cadastrada
             </p>
             <p className="text-[13.5px] txt-muted mt-1.5">
-              Comece criando a primeira tarefa pra Simone.
+              Comece criando a primeira tarefa.
             </p>
             <div className="mt-4">
               <PrimaryButton onClick={onAddTask} leadingIcon={Plus}>
@@ -37,23 +46,24 @@ export default function AdminHome({ person, items, onAddTask, goTo }) {
         </div>
       ) : (
         <>
+          {/* Simone today card */}
           <div className="px-4 mt-7">
             <div className="surf-card rounded-xl p-5">
               <div className="flex items-baseline justify-between">
                 <span className="text-[13px] font-semibold uppercase tracking-wider txt-muted">
-                  Tarefas de hoje
+                  Pra Simone hoje
                 </span>
                 <span className="text-[12.5px] txt-muted">
                   {totalTasks} no catálogo
                 </span>
               </div>
-              {dueCount > 0 ? (
+              {simoneDue > 0 ? (
                 <div className="mt-2 flex items-baseline gap-2">
                   <span className="text-[40px] font-bold tabular-nums leading-none txt-primary">
-                    {dueCount}
+                    {simoneDue}
                   </span>
                   <span className="text-[14px] txt-muted">
-                    pra Simone hoje
+                    {simoneDue === 1 ? 'tarefa pendente' : 'tarefas pendentes'}
                   </span>
                 </div>
               ) : (
@@ -62,7 +72,7 @@ export default function AdminHome({ person, items, onAddTask, goTo }) {
                     Tudo em dia
                   </span>
                   <p className="text-[13px] txt-muted mt-0.5">
-                    Nenhuma tarefa pendente hoje.
+                    Nenhuma tarefa pendente pra Simone hoje.
                   </p>
                 </div>
               )}
@@ -74,9 +84,52 @@ export default function AdminHome({ person, items, onAddTask, goTo }) {
                   <Eye size={15} strokeWidth={2.4} />
                   Espiar a tela da Simone
                 </span>
+                <ChevronRight size={15} className="txt-accent" strokeWidth={2.5} />
               </button>
             </div>
           </div>
+
+          {/* "Minhas tarefas" — only show if admin has any task assigned to them. */}
+          {mineTotal > 0 && (
+            <div className="px-4 mt-3">
+              <div className="surf-card rounded-xl p-5">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-[13px] font-semibold uppercase tracking-wider txt-muted">
+                    Pra mim hoje
+                  </span>
+                  <span className="text-[12.5px] txt-muted">
+                    {mineTotal} {mineTotal === 1 ? 'tarefa' : 'tarefas'}
+                  </span>
+                </div>
+                {mineDue > 0 ? (
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="text-[40px] font-bold tabular-nums leading-none txt-primary">
+                      {mineDue}
+                    </span>
+                    <span className="text-[14px] txt-muted">
+                      {mineDue === 1 ? 'pendente' : 'pendentes'}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="mt-2">
+                    <span className="text-[18px] font-semibold leading-tight txt-primary">
+                      Tudo em dia
+                    </span>
+                  </div>
+                )}
+                <button
+                  onClick={() => goTo('mine')}
+                  className="mt-4 w-full flex items-center justify-between px-3 h-10 rounded-lg surf-accent-soft active:scale-[0.99] transition"
+                >
+                  <span className="text-[14px] font-semibold txt-accent flex items-center gap-2">
+                    <User size={15} strokeWidth={2.4} />
+                    Abrir minhas tarefas
+                  </span>
+                  <ChevronRight size={15} className="txt-accent" strokeWidth={2.5} />
+                </button>
+              </div>
+            </div>
+          )}
 
           <Section title="Acesso rápido">
             <Row
@@ -103,23 +156,21 @@ export default function AdminHome({ person, items, onAddTask, goTo }) {
               Ver tudo
             </button>
           }>
-            {AREAS.map((area, i) => {
-              const count = items.filter((it) => it.task.area === area).length;
-              if (count === 0) return null;
-              const A = AREA_ICONS[area] || ICON_FALLBACK;
-              const visibleAreas = AREAS.filter((a) => items.some((it) => it.task.area === a));
-              const lastIdx = visibleAreas.length - 1;
-              return (
-                <Row
-                  key={area}
-                  leading={<Icon Comp={A} />}
-                  title={area}
-                  subtitle={`${count} ${count === 1 ? 'tarefa' : 'tarefas'}`}
-                  onClick={() => goTo('tarefas')}
-                  isLast={visibleAreas.indexOf(area) === lastIdx}
-                />
-              );
-            })}
+            {AREAS.filter((area) => items.some((it) => it.task.areas?.includes(area)))
+              .map((area, idx, visibleAreas) => {
+                const count = items.filter((it) => it.task.areas?.includes(area)).length;
+                const A = AREA_ICONS[area] || ICON_FALLBACK;
+                return (
+                  <Row
+                    key={area}
+                    leading={<Icon Comp={A} />}
+                    title={area}
+                    subtitle={`${count} ${count === 1 ? 'tarefa' : 'tarefas'}`}
+                    onClick={() => goTo('tarefas')}
+                    isLast={idx === visibleAreas.length - 1}
+                  />
+                );
+              })}
           </Section>
         </>
       )}

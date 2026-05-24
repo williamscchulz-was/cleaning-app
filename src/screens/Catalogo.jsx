@@ -3,10 +3,14 @@ import { ChevronLeft, Plus } from 'lucide-react';
 import { Row, TitleHeader } from '../components/ui';
 import { AREAS, AREA_ICONS, FREQUENCIES, ICON_FALLBACK } from '../lib/constants';
 
-export default function Catalogo({ tasks, onAdd, onEdit, onBack }) {
+export default function Catalogo({ tasks, onAdd, onAddInArea, onEdit, onBack }) {
+  // Group by area; a task with N areas appears in N groups.
   const grouped = useMemo(() => {
     const g = {};
-    tasks.forEach((t) => { (g[t.area] ||= []).push(t); });
+    tasks.forEach((t) => {
+      const areas = t.areas?.length ? t.areas : ['—'];
+      areas.forEach((a) => { (g[a] ||= []).push(t); });
+    });
     return Object.entries(g).sort(
       ([a], [b]) => AREAS.indexOf(a) - AREAS.indexOf(b),
     );
@@ -22,6 +26,7 @@ export default function Catalogo({ tasks, onAdd, onEdit, onBack }) {
         <button
           onClick={onAdd}
           className="w-9 h-9 rounded-full surf-accent-soft txt-accent flex items-center justify-center active:scale-95 transition"
+          aria-label="Nova tarefa"
         >
           <Plus size={18} strokeWidth={2.5} />
         </button>
@@ -47,16 +52,27 @@ export default function Catalogo({ tasks, onAdd, onEdit, onBack }) {
             const A = AREA_ICONS[area] || ICON_FALLBACK;
             return (
               <section key={area} className="px-4 fade-slide">
-                <div className="flex items-center gap-2 px-4 mb-1.5">
-                  <A size={13} className="txt-muted" strokeWidth={2.2} />
-                  <h3 className="text-[13px] font-semibold uppercase tracking-wider txt-muted">
-                    {area}
-                  </h3>
+                <div className="flex items-center justify-between gap-2 px-4 mb-1.5">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <A size={13} className="txt-muted shrink-0" strokeWidth={2.2} />
+                    <h3 className="text-[13px] font-semibold uppercase tracking-wider txt-muted truncate">
+                      {area}
+                    </h3>
+                  </div>
+                  {area !== '—' && onAddInArea && (
+                    <button
+                      onClick={() => onAddInArea(area)}
+                      className="shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full surf-accent-soft txt-accent active:scale-95 transition"
+                      aria-label={`Nova tarefa em ${area}`}
+                    >
+                      <Plus size={14} strokeWidth={2.5} />
+                    </button>
+                  )}
                 </div>
                 <div className="surf-card rounded-xl overflow-hidden">
                   {items.map((t, i) => (
                     <Row
-                      key={t.id}
+                      key={t.id + '@' + area}
                       title={t.name}
                       onClick={() => onEdit(t)}
                       isLast={i === items.length - 1}

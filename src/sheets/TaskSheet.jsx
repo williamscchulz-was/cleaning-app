@@ -1,33 +1,45 @@
 import { useEffect, useState } from 'react';
 import { Check, Trash2, X } from 'lucide-react';
-import { AREAS, FREQUENCIES, FREQUENCY_KEYS } from '../lib/constants';
+import { AREAS, FREQUENCIES, FREQUENCY_KEYS, PEOPLE, ROLE_KEYS } from '../lib/constants';
 
-export default function TaskSheet({ open, task, onClose, onSave, onDelete }) {
+export default function TaskSheet({ open, task, onClose, onSave, onDelete, defaultAreas }) {
   const [name, setName] = useState('');
-  const [area, setArea] = useState(AREAS[0]);
+  const [areas, setAreas] = useState(() => new Set());
   const [frequencyKey, setFrequencyKey] = useState('semanal');
   const [notes, setNotes] = useState('');
-  const [lastDoneMode, setLastDoneMode] = useState('never'); // 'never' | 'today' | 'custom'
+  const [assignedTo, setAssignedTo] = useState('simone');
+  const [lastDoneMode, setLastDoneMode] = useState('never');
   const [lastDoneCustom, setLastDoneCustom] = useState('');
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (open) {
       setName(task?.name || '');
-      setArea(task?.area || AREAS[0]);
+      const initialAreas = task?.areas ?? (defaultAreas ?? []);
+      setAreas(new Set(initialAreas.filter((a) => AREAS.includes(a))));
       setFrequencyKey(task?.frequencyKey || 'semanal');
       setNotes(task?.notes || '');
+      setAssignedTo(task?.assignedTo || 'simone');
       setLastDoneMode('never');
       setLastDoneCustom('');
       setBusy(false);
     }
-  }, [open, task]);
+  }, [open, task, defaultAreas]);
 
   if (!open) return null;
   const isEdit = !!task;
 
+  function toggleArea(a) {
+    setAreas((prev) => {
+      const next = new Set(prev);
+      if (next.has(a)) next.delete(a);
+      else next.add(a);
+      return next;
+    });
+  }
+
   async function handleSave() {
-    if (!name.trim() || busy) return;
+    if (!name.trim() || areas.size === 0 || busy) return;
     setBusy(true);
     try {
       let seedDate = null;
@@ -35,8 +47,6 @@ export default function TaskSheet({ open, task, onClose, onSave, onDelete }) {
         if (lastDoneMode === 'today') {
           seedDate = new Date();
         } else if (lastDoneMode === 'custom' && lastDoneCustom) {
-          // <input type="date"> returns YYYY-MM-DD; treat as local midday to
-          // avoid timezone slipping the date by one day.
           const [y, m, d] = lastDoneCustom.split('-').map(Number);
           seedDate = new Date(y, m - 1, d, 12, 0, 0);
         }
@@ -44,9 +54,10 @@ export default function TaskSheet({ open, task, onClose, onSave, onDelete }) {
       await onSave({
         id: task?.id,
         name: name.trim(),
-        area,
+        areas: Array.from(areas),
         frequencyKey,
         notes: notes.trim(),
+        assignedTo,
         seedDate,
       });
     } catch (err) {
@@ -85,7 +96,7 @@ export default function TaskSheet({ open, task, onClose, onSave, onDelete }) {
           </h2>
           <button
             onClick={handleSave}
-            disabled={!name.trim() || busy}
+            disabled={!name.trim() || areas.size === 0 || busy}
             className="px-3 h-9 rounded-full surf-accent text-white text-[14px] font-semibold disabled:opacity-40"
           >
             {busy ? '…' : 'Salvar'}
@@ -103,14 +114,19 @@ export default function TaskSheet({ open, task, onClose, onSave, onDelete }) {
             />
           </Field>
 
-          <Field label="Área">
+          <Field
+            label="Áreas"
+            hint={areas.size === 0
+              ? 'Selecione pelo menos uma área.'
+              : `${areas.size} ${areas.size === 1 ? 'área selecionada' : 'áreas selecionadas'}`}
+          >
             <div className="flex flex-wrap gap-2">
               {AREAS.map((a) => {
-                const active = area === a;
+                const active = areas.has(a);
                 return (
                   <button
                     key={a}
-                    onClick={() => setArea(a)}
+                    onClick={() => toggleArea(a)}
                     className={`px-3.5 py-2 rounded-full text-[13.5px] font-medium transition ${active ? 'surf-accent text-white' : 'surf-card txt-primary'}`}
                   >
                     {a}
@@ -147,6 +163,33 @@ export default function TaskSheet({ open, task, onClose, onSave, onDelete }) {
                       }}
                     >
                       {active && <Check size={12} strokeWidth={3.5} color="#fff" />}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+
+          <Field label="Pra quem">
+            <div className="grid grid-cols-3 gap-2">
+              {ROLE_KEYS.map((k) => {
+                const p = PEOPLE[k];
+                const active = assignedTo === k;
+                return (
+                  <button
+                    key={k}
+                    onClick={() => setAssignedTo(k)}
+                    className={`flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl transition ${active ? 'surf-accent-soft' : 'surf-card'}`}
+                    style={active ? { boxShadow: '0 0 0 1.5px var(--accent) inset' } : undefined}
+                  >
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-[14px]"
+                      style={{ background: p.bg, color: p.textColor }}
+                    >
+                      {p.initial}
+                    </div>
+                    <span className={`text-[12.5px] font-semibold ${active ? 'txt-accent' : 'txt-primary'}`}>
+                      {p.name}
                     </span>
                   </button>
                 );
@@ -215,12 +258,15 @@ export default function TaskSheet({ open, task, onClose, onSave, onDelete }) {
   );
 }
 
-function Field({ label, children }) {
+function Field({ label, hint, children }) {
   return (
     <div>
       <label className="text-[12px] font-semibold uppercase tracking-wider txt-muted ml-1">
         {label}
       </label>
+      {hint && (
+        <p className="text-[12px] txt-muted mt-0.5 ml-1">{hint}</p>
+      )}
       <div className="mt-1.5">{children}</div>
     </div>
   );

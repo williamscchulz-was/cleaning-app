@@ -4,7 +4,7 @@ import AppIcon from './components/AppIcon';
 import { MoreButton } from './components/ui';
 import { ToastProvider, useToast } from './components/Toast';
 import PickerScreen from './screens/PickerScreen';
-import SimoneToday from './screens/SimoneToday';
+import TodayScreen from './screens/TodayScreen';
 import AdminHome from './screens/AdminHome';
 import Catalogo from './screens/Catalogo';
 import Historico from './screens/Historico';
@@ -86,6 +86,7 @@ function RealApp({ theme, toggleTheme }) {
   const [tab, setTab] = useState('home');
   const [taskSheetOpen, setTaskSheetOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [defaultAreasForNew, setDefaultAreasForNew] = useState(null);
   const [skipTarget, setSkipTarget] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -181,15 +182,23 @@ function RealApp({ theme, toggleTheme }) {
 
   function handleAddTask() {
     setEditingTask(null);
+    setDefaultAreasForNew(null);
+    setTaskSheetOpen(true);
+  }
+  function handleAddInArea(area) {
+    setEditingTask(null);
+    setDefaultAreasForNew([area]);
     setTaskSheetOpen(true);
   }
   function handleEditTask(task) {
     setEditingTask(task);
+    setDefaultAreasForNew(null);
     setTaskSheetOpen(true);
   }
   function handleCloseSheet() {
     setTaskSheetOpen(false);
     setEditingTask(null);
+    setDefaultAreasForNew(null);
   }
 
   async function handleSaveTask(data) {
@@ -243,8 +252,9 @@ function RealApp({ theme, toggleTheme }) {
       <div className="flex-1 flex flex-col min-h-0">
         <main className="flex-1 overflow-y-auto no-scrollbar relative">
           {role === 'simone' && (
-            <SimoneToday
+            <TodayScreen
               items={effectiveItems}
+              assignedToRole="simone"
               onToggle={handleToggleDone}
               onSkipRequest={handleSkipRequest}
             />
@@ -255,6 +265,7 @@ function RealApp({ theme, toggleTheme }) {
               {tab === 'home' && (
                 <AdminHome
                   person={adminPerson}
+                  role={role}
                   items={effectiveItems}
                   onAddTask={handleAddTask}
                   goTo={setTab}
@@ -264,6 +275,7 @@ function RealApp({ theme, toggleTheme }) {
                 <Catalogo
                   tasks={tasks}
                   onAdd={handleAddTask}
+                  onAddInArea={handleAddInArea}
                   onEdit={handleEditTask}
                   onBack={() => setTab('home')}
                 />
@@ -278,16 +290,27 @@ function RealApp({ theme, toggleTheme }) {
               {tab === 'preview' && (
                 <Preview items={effectiveItems} onBack={() => setTab('home')} />
               )}
+              {tab === 'mine' && (
+                <TodayScreen
+                  items={effectiveItems}
+                  assignedToRole={role}
+                  title="Minhas tarefas"
+                  onToggle={handleToggleDone}
+                  onSkipRequest={handleSkipRequest}
+                  onBack={() => setTab('home')}
+                />
+              )}
             </>
           )}
         </main>
 
-        {isAdmin && tab !== 'preview' && <BottomDock tab={tab} setTab={setTab} />}
+        {isAdmin && tab !== 'preview' && tab !== 'mine' && <BottomDock tab={tab} setTab={setTab} />}
       </div>
 
       <TaskSheet
         open={taskSheetOpen}
         task={editingTask}
+        defaultAreas={defaultAreasForNew}
         onClose={handleCloseSheet}
         onSave={handleSaveTask}
         onDelete={handleDeleteTask}

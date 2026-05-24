@@ -1,19 +1,38 @@
 import { useMemo } from 'react';
-import { Check, Sparkles } from 'lucide-react';
+import { Check, ChevronLeft, Sparkles } from 'lucide-react';
 import { ProgressBar, TitleHeader } from '../components/ui';
 import TaskRow from '../components/TaskRow';
-import { AREAS } from '../lib/constants';
+import { AREAS, PEOPLE } from '../lib/constants';
 import { formatDateBR } from '../lib/dates';
 
-export default function SimoneToday({ items, onToggle, onSkipRequest, readOnly = false }) {
+// Shared "today" view. Used by:
+// - Simone (always sees her own assigned tasks)
+// - Admin "Minhas tarefas" (sees tasks assigned to their role)
+// - Admin "Espiar Simone" (read-only, assignedToRole='simone')
+export default function TodayScreen({
+  items,
+  assignedToRole,
+  onToggle,
+  onSkipRequest,
+  readOnly = false,
+  title,
+  onBack,
+}) {
   const today = useMemo(() => new Date(), []);
   const date = useMemo(() => formatDateBR(today), [today]);
 
+  // Only consider tasks for this role.
+  const scoped = useMemo(
+    () => items.filter(({ task }) => task.assignedTo === assignedToRole),
+    [items, assignedToRole],
+  );
+
+  // Due-and-not-skipped OR already done today (kept so user can untoggle).
   const visible = useMemo(
-    () => items.filter(({ isDue, doneToday, skippedToday }) =>
+    () => scoped.filter(({ isDue, doneToday, skippedToday }) =>
       (isDue && !skippedToday) || doneToday,
     ),
-    [items],
+    [scoped],
   );
 
   const total = visible.length;
@@ -21,19 +40,33 @@ export default function SimoneToday({ items, onToggle, onSkipRequest, readOnly =
   const remaining = total - done;
   const pct = total === 0 ? 100 : Math.round((done / total) * 100);
 
+  // Group by area; tasks with multiple areas appear in each.
   const grouped = useMemo(() => {
     const g = {};
-    visible.forEach((it) => { (g[it.task.area] ||= []).push(it); });
-    return Object.entries(g).sort(
-      ([a], [b]) => AREAS.indexOf(a) - AREAS.indexOf(b),
-    );
+    visible.forEach((it) => {
+      const areas = it.task.areas?.length ? it.task.areas : ['—'];
+      areas.forEach((a) => { (g[a] ||= []).push(it); });
+    });
+    return Object.entries(g).sort(([a], [b]) => AREAS.indexOf(a) - AREAS.indexOf(b));
   }, [visible]);
+
+  const person = PEOPLE[assignedToRole];
+  const resolvedTitle = title ?? 'Tarefas';
 
   return (
     <div className="pb-12">
+      {onBack && (
+        <div className="px-3 pt-2">
+          <button onClick={onBack} className="flex items-center gap-1 px-1 h-9 rounded-full active:scale-95 transition txt-accent">
+            <ChevronLeft size={20} strokeWidth={2.5} />
+            <span className="text-[15px] font-medium">Início</span>
+          </button>
+        </div>
+      )}
+
       <TitleHeader
         kicker={`${date.weekday}, ${date.day} de ${date.month}`}
-        title="Tarefas"
+        title={resolvedTitle}
       />
 
       {total > 0 && (
@@ -63,7 +96,7 @@ export default function SimoneToday({ items, onToggle, onSkipRequest, readOnly =
               <div className="surf-card rounded-xl overflow-hidden">
                 {areaItems.map(({ task, doneToday }, i) => (
                   <TaskRow
-                    key={task.id}
+                    key={task.id + '@' + area}
                     task={task}
                     done={doneToday}
                     onToggle={readOnly ? undefined : () => onToggle?.(task.id)}
@@ -85,7 +118,7 @@ export default function SimoneToday({ items, onToggle, onSkipRequest, readOnly =
               Dia tranquilo
             </p>
             <p className="text-[14px] txt-muted mt-1">
-              Nada pendente hoje
+              {person ? `Nada pendente pra ${person.name} hoje` : 'Nada pendente hoje'}
             </p>
           </div>
         )}
@@ -99,7 +132,9 @@ export default function SimoneToday({ items, onToggle, onSkipRequest, readOnly =
               Tudo prontinho!
             </p>
             <p className="text-[14px] txt-muted mt-1 px-6">
-              Obrigado, Simone — a casa fica linda quando você passa.
+              {assignedToRole === 'simone'
+                ? 'Obrigado, Simone — a casa fica linda quando você passa.'
+                : 'Tudo em dia por hoje.'}
             </p>
           </div>
         )}

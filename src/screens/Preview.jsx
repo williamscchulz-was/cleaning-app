@@ -1,5 +1,5 @@
 import { ArrowLeft, Eye } from 'lucide-react';
-import SimoneToday from './SimoneToday';
+import TodayScreen from './TodayScreen';
 
 export default function Preview({ items, onBack }) {
   return (
@@ -19,7 +19,7 @@ export default function Preview({ items, onBack }) {
         <span className="w-9" />
       </div>
       <div className="opacity-95 pointer-events-none select-none">
-        <SimoneToday items={items} readOnly />
+        <TodayScreen items={items} assignedToRole="simone" readOnly />
       </div>
     </div>
   );

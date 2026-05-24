@@ -3,24 +3,26 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 
-export async function createTask({ name, area, frequencyKey, notes, uid }) {
+export async function createTask({ name, areas, frequencyKey, notes, assignedTo, uid }) {
   return addDoc(collection(db, 'tasks'), {
     name,
-    area,
+    areas: areas && areas.length ? areas : [],
     frequencyKey,
     notes: notes || '',
+    assignedTo: assignedTo || 'simone',
     createdBy: uid,
     createdAt: serverTimestamp(),
     active: true,
   });
 }
 
-export async function updateTask(taskId, { name, area, frequencyKey, notes }) {
+export async function updateTask(taskId, { name, areas, frequencyKey, notes, assignedTo }) {
   return updateDoc(doc(db, 'tasks', taskId), {
     name,
-    area,
+    areas: areas && areas.length ? areas : [],
     frequencyKey,
     notes: notes || '',
+    assignedTo: assignedTo || 'simone',
   });
 }
 
