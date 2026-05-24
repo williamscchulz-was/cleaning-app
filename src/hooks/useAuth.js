@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
-import { doc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore';
+import { deleteField, doc, onSnapshot, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 
 // Single source of truth for the current user's identity + role.
@@ -49,5 +49,12 @@ export function useAuth() {
     });
   }
 
-  return { uid, role, loading, pickRole };
+  // Clears the role so the picker shows again. We update instead of delete
+  // because the security rules only permit create/update on users/{uid}.
+  async function clearRole() {
+    if (!uid) return;
+    await updateDoc(doc(db, 'users', uid), { role: deleteField() });
+  }
+
+  return { uid, role, loading, pickRole, clearRole };
 }

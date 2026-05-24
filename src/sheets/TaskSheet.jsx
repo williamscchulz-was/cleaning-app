@@ -121,24 +121,33 @@ export default function TaskSheet({ open, task, onClose, onSave, onDelete }) {
           </Field>
 
           <Field label="Frequência">
-            <div className="grid grid-cols-2 gap-2">
-              {FREQUENCY_KEYS.map((k) => {
+            <div className="surf-card rounded-xl overflow-hidden">
+              {FREQUENCY_KEYS.map((k, i) => {
                 const f = FREQUENCIES[k];
                 const active = frequencyKey === k;
+                const last = i === FREQUENCY_KEYS.length - 1;
                 return (
                   <button
                     key={k}
                     onClick={() => setFrequencyKey(k)}
-                    className={`flex items-center justify-between px-4 py-3 rounded-xl text-left transition ${active ? 'surf-accent-soft' : 'surf-card'}`}
-                    style={active ? { boxShadow: '0 0 0 1.5px var(--accent) inset' } : undefined}
+                    className={`w-full flex items-center gap-3 pl-4 pr-3 py-3 surf-hover transition text-left ${!last ? 'border-b bd-hairline' : ''}`}
+                    style={!last ? { borderBottomWidth: '0.5px' } : undefined}
                   >
-                    <div>
-                      <div className="text-[14px] font-semibold txt-primary">{f.label}</div>
-                      <div className="text-[11.5px] txt-muted mt-0.5">
+                    <div className="flex-1">
+                      <div className="text-[15px] font-semibold txt-primary">{f.label}</div>
+                      <div className="text-[12px] txt-muted mt-0.5">
                         {f.weeks === 1 ? 'toda semana' : `a cada ${f.weeks} semanas`}
                       </div>
                     </div>
-                    {active && <Check size={16} className="txt-accent" strokeWidth={3} />}
+                    <span
+                      className="w-[22px] h-[22px] rounded-full flex items-center justify-center shrink-0"
+                      style={{
+                        background: active ? 'var(--accent)' : 'transparent',
+                        border: active ? 'none' : '1.5px solid var(--text-subtle)',
+                      }}
+                    >
+                      {active && <Check size={12} strokeWidth={3.5} color="#fff" />}
+                    </span>
                   </button>
                 );
               })}

@@ -1,4 +1,4 @@
-import { Check, ChevronRight, Moon, Sun } from 'lucide-react';
+import { Check, ChevronRight, MoreHorizontal, Moon, Sun } from 'lucide-react';
 
 // Big iOS-style page title with optional pill on the right.
 export function TitleHeader({ kicker, title, right }) {
@@ -145,15 +145,28 @@ export function PrimaryButton({ children, onClick, disabled, fullWidth, leadingI
   );
 }
 
-// Theme toggle (sun/moon).
+// Theme toggle (sun/moon). Bigger touch target (44×44) per Apple HIG.
 export function ThemeToggle({ theme, onToggle }) {
   return (
     <button
       onClick={onToggle}
       aria-label={theme === 'dark' ? 'Tema claro' : 'Tema escuro'}
-      className="inline-flex items-center justify-center w-9 h-9 rounded-full surf-section txt-primary active:scale-95 transition"
+      className="inline-flex items-center justify-center w-11 h-11 rounded-full surf-section txt-primary active:scale-95 transition"
     >
-      {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+      {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+    </button>
+  );
+}
+
+// "More" button used in headers — opens the Settings sheet.
+export function MoreButton({ onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label="Mais opções"
+      className="inline-flex items-center justify-center w-11 h-11 rounded-full surf-section txt-primary active:scale-95 transition"
+    >
+      <MoreHorizontal size={18} />
     </button>
   );
 }

@@ -1,5 +1,5 @@
 import { Eye, History, ListChecks, Plus } from 'lucide-react';
-import { Pill, PrimaryButton, Row, Section, TitleHeader } from '../components/ui';
+import { PrimaryButton, Row, Section, TitleHeader } from '../components/ui';
 import { AREAS, AREA_ICONS, ICON_FALLBACK } from '../lib/constants';
 import { formatDateBR } from '../lib/dates';
 
@@ -14,7 +14,6 @@ export default function AdminHome({ person, items, onAddTask, goTo }) {
       <TitleHeader
         kicker={`${date.weekday}, ${date.day} de ${date.month}`}
         title={`Olá, ${person.name}`}
-        right={<Pill>Hoje</Pill>}
       />
 
       {totalTasks === 0 ? (

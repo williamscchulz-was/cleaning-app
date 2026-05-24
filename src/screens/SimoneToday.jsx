@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Check, Sparkles } from 'lucide-react';
-import { ProgressBar, TitleHeader, Pill } from '../components/ui';
+import { ProgressBar, TitleHeader } from '../components/ui';
 import TaskRow from '../components/TaskRow';
 import { AREAS } from '../lib/constants';
 import { formatDateBR } from '../lib/dates';
@@ -34,7 +34,6 @@ export default function SimoneToday({ items, onToggle, onSkipRequest, readOnly =
       <TitleHeader
         kicker={`${date.weekday}, ${date.day} de ${date.month}`}
         title="Tarefas"
-        right={<Pill>Hoje</Pill>}
       />
 
       {total > 0 && (
