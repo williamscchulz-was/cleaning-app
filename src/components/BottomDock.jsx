@@ -12,7 +12,7 @@ const TABS = [
 export default function BottomDock({ tab, setTab, onOpenSettings }) {
   return (
     <div
-      className="absolute bottom-0 inset-x-0 z-20 px-3 pt-2 pointer-events-none"
+      className="md:hidden absolute bottom-0 inset-x-0 z-20 px-3 pt-2 pointer-events-none"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 10px)' }}
     >
       <div

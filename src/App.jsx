@@ -1,6 +1,7 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
 import { MoreHorizontal } from 'lucide-react';
 import BottomDock from './components/BottomDock';
+import Sidebar from './components/Sidebar';
 import AppIcon from './components/AppIcon';
 import { ToastProvider, useToast } from './components/Toast';
 import PickerScreen from './screens/PickerScreen';
@@ -38,14 +39,17 @@ function Splash() {
   );
 }
 
-// Fills the viewport (dvh handles iOS URL-bar collapse). Centered phone
-// column on desktop. No outer safe-area padding — content extends edge to
-// edge; the screens and the floating dock apply their own safe-area
-// padding internally where it matters.
-function Shell({ children }) {
+// Fills the viewport (dvh handles iOS URL-bar collapse). On phones the
+// content sits in a centered 440px column with a floating dock. On
+// tablet+ we switch to a two-column layout: persistent sidebar on the
+// left and a wider content area on the right. No outer safe-area
+// padding — content extends edge to edge; screens and chrome apply their
+// own safe-area padding internally where it matters.
+function Shell({ sidebar, children }) {
   return (
-    <div className="h-[100dvh] w-full surf-bg overflow-hidden">
-      <div className="relative max-w-[440px] mx-auto h-full">
+    <div className="h-[100dvh] w-full surf-bg overflow-hidden flex">
+      {sidebar}
+      <div className="relative flex-1 h-full">
         {children}
       </div>
     </div>
@@ -119,7 +123,9 @@ function RealApp({ theme, toggleTheme }) {
             paddingBottom: 'env(safe-area-inset-bottom)',
           }}
         >
-          <PickerScreen onPick={pickRole} />
+          <div className="max-w-[440px] md:max-w-[560px] mx-auto">
+            <PickerScreen onPick={pickRole} />
+          </div>
         </main>
       </Shell>
     );
@@ -247,7 +253,17 @@ function RealApp({ theme, toggleTheme }) {
   const showFloatingSettings = !showDock && tab !== 'preview';
 
   return (
-    <Shell>
+    <Shell
+      sidebar={
+        showDock ? (
+          <Sidebar
+            tab={tab}
+            setTab={setTab}
+            onOpenSettings={() => setSettingsOpen(true)}
+          />
+        ) : null
+      }
+    >
       <main
         className="absolute inset-0 overflow-y-auto no-scrollbar"
         style={{
@@ -257,6 +273,7 @@ function RealApp({ theme, toggleTheme }) {
             : 'env(safe-area-inset-bottom)',
         }}
       >
+        <div className="max-w-[440px] md:max-w-[640px] mx-auto">
           {role === 'simone' && (
             <TodayScreen
               items={effectiveItems}
@@ -308,6 +325,7 @@ function RealApp({ theme, toggleTheme }) {
               )}
             </>
           )}
+        </div>
       </main>
 
       {showDock && (
