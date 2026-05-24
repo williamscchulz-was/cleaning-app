@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
+import { MoreHorizontal } from 'lucide-react';
 import BottomDock from './components/BottomDock';
 import AppIcon from './components/AppIcon';
-import { MoreButton } from './components/ui';
 import { ToastProvider, useToast } from './components/Toast';
 import PickerScreen from './screens/PickerScreen';
 import TodayScreen from './screens/TodayScreen';
@@ -39,23 +39,13 @@ function Splash() {
 }
 
 // Fills the viewport (dvh handles iOS URL-bar collapse). Centered phone
-// column on desktop. Children render the screen content; the parent App
-// is responsible for placing scrollable areas vs fixed chrome (BottomDock).
-function Shell({ children, onOpenSettings, hideSettings }) {
+// column on desktop. No outer safe-area padding — content extends edge to
+// edge; the screens and the floating dock apply their own safe-area
+// padding internally where it matters.
+function Shell({ children }) {
   return (
     <div className="h-[100dvh] w-full surf-bg overflow-hidden">
-      <div
-        className="relative max-w-[440px] mx-auto h-full flex flex-col"
-        style={{
-          paddingTop: 'env(safe-area-inset-top)',
-          paddingBottom: 'env(safe-area-inset-bottom)',
-        }}
-      >
-        {!hideSettings && onOpenSettings && (
-          <div className="absolute top-[max(env(safe-area-inset-top),8px)] right-3 z-30">
-            <MoreButton onClick={onOpenSettings} />
-          </div>
-        )}
+      <div className="relative max-w-[440px] mx-auto h-full">
         {children}
       </div>
     </div>
@@ -121,8 +111,14 @@ function RealApp({ theme, toggleTheme }) {
 
   if (!role) {
     return (
-      <Shell hideSettings>
-        <main className="flex-1 overflow-y-auto no-scrollbar">
+      <Shell>
+        <main
+          className="absolute inset-0 overflow-y-auto no-scrollbar"
+          style={{
+            paddingTop: 'env(safe-area-inset-top)',
+            paddingBottom: 'env(safe-area-inset-bottom)',
+          }}
+        >
           <PickerScreen onPick={pickRole} />
         </main>
       </Shell>
@@ -246,11 +242,21 @@ function RealApp({ theme, toggleTheme }) {
   }
 
   const adminPerson = role === 'flavia' ? PEOPLE.flavia : PEOPLE.william;
+  const showDock = isAdmin && tab !== 'preview' && tab !== 'mine';
+  // Simone has no dock, so she needs a separate way into settings.
+  const showFloatingSettings = !showDock && tab !== 'preview';
 
   return (
-    <Shell onOpenSettings={() => setSettingsOpen(true)}>
-      <div className="flex-1 flex flex-col min-h-0">
-        <main className="flex-1 overflow-y-auto no-scrollbar relative">
+    <Shell>
+      <main
+        className="absolute inset-0 overflow-y-auto no-scrollbar"
+        style={{
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingBottom: showDock
+            ? 'calc(env(safe-area-inset-bottom) + 96px)'
+            : 'env(safe-area-inset-bottom)',
+        }}
+      >
           {role === 'simone' && (
             <TodayScreen
               items={effectiveItems}
@@ -302,10 +308,30 @@ function RealApp({ theme, toggleTheme }) {
               )}
             </>
           )}
-        </main>
+      </main>
 
-        {isAdmin && tab !== 'preview' && tab !== 'mine' && <BottomDock tab={tab} setTab={setTab} />}
-      </div>
+      {showDock && (
+        <BottomDock
+          tab={tab}
+          setTab={setTab}
+          onOpenSettings={() => setSettingsOpen(true)}
+        />
+      )}
+
+      {showFloatingSettings && (
+        <button
+          onClick={() => setSettingsOpen(true)}
+          aria-label="Mais opções"
+          className="absolute z-20 w-11 h-11 rounded-full surf-card txt-primary flex items-center justify-center active:scale-95 transition"
+          style={{
+            top: 'max(env(safe-area-inset-top), 12px)',
+            right: 12,
+            boxShadow: '0 6px 18px -8px rgba(0,0,0,0.25)',
+          }}
+        >
+          <MoreHorizontal size={18} />
+        </button>
+      )}
 
       <TaskSheet
         open={taskSheetOpen}
