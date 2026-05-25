@@ -2,19 +2,20 @@ import { useMemo } from 'react';
 import { ChevronLeft, Plus } from 'lucide-react';
 import { Row, TitleHeader } from '../components/ui';
 import { AREAS, AREA_ICONS, FREQUENCIES, ICON_FALLBACK } from '../lib/constants';
+import { relativeFromNow } from '../lib/dates';
 
-export default function Catalogo({ tasks, onAdd, onAddInArea, onEdit, onBack }) {
+export default function Catalogo({ items, onAdd, onAddInArea, onEdit, onBack }) {
   // Group by area; a task with N areas appears in N groups.
   const grouped = useMemo(() => {
     const g = {};
-    tasks.forEach((t) => {
-      const areas = t.areas?.length ? t.areas : ['—'];
-      areas.forEach((a) => { (g[a] ||= []).push(t); });
+    items.forEach(({ task, last }) => {
+      const areas = task.areas?.length ? task.areas : ['—'];
+      areas.forEach((a) => { (g[a] ||= []).push({ task, last }); });
     });
     return Object.entries(g).sort(
       ([a], [b]) => AREAS.indexOf(a) - AREAS.indexOf(b),
     );
-  }, [tasks]);
+  }, [items]);
 
   return (
     <div className="pb-8">
@@ -25,19 +26,19 @@ export default function Catalogo({ tasks, onAdd, onAddInArea, onEdit, onBack }) 
         </button>
         <button
           onClick={onAdd}
-          className="w-9 h-9 rounded-full surf-accent-soft txt-accent flex items-center justify-center active:scale-95 transition"
           aria-label="Nova tarefa"
+          className="w-9 h-9 rounded-full surf-accent-soft txt-accent flex items-center justify-center active:scale-95 transition"
         >
           <Plus size={18} strokeWidth={2.5} />
         </button>
       </div>
 
       <TitleHeader
-        kicker={`${tasks.length} ${tasks.length === 1 ? 'tarefa cadastrada' : 'tarefas cadastradas'}`}
+        kicker={`${items.length} ${items.length === 1 ? 'tarefa cadastrada' : 'tarefas cadastradas'}`}
         title="Catálogo"
       />
 
-      {tasks.length === 0 ? (
+      {items.length === 0 ? (
         <div className="px-5 pt-12 text-center">
           <p className="text-[16px] font-semibold txt-primary">
             Nenhuma tarefa ainda
@@ -48,7 +49,7 @@ export default function Catalogo({ tasks, onAdd, onAddInArea, onEdit, onBack }) 
         </div>
       ) : (
         <div className="space-y-7 mt-4">
-          {grouped.map(([area, items]) => {
+          {grouped.map(([area, entries]) => {
             const A = AREA_ICONS[area] || ICON_FALLBACK;
             return (
               <section key={area} className="px-4 fade-slide">
@@ -62,23 +63,31 @@ export default function Catalogo({ tasks, onAdd, onAddInArea, onEdit, onBack }) 
                   {area !== '—' && onAddInArea && (
                     <button
                       onClick={() => onAddInArea(area)}
-                      className="shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full surf-accent-soft txt-accent active:scale-95 transition"
                       aria-label={`Nova tarefa em ${area}`}
+                      className="shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full surf-accent-soft txt-accent active:scale-95 transition"
                     >
                       <Plus size={14} strokeWidth={2.5} />
                     </button>
                   )}
                 </div>
                 <div className="surf-card rounded-xl overflow-hidden">
-                  {items.map((t, i) => (
-                    <Row
-                      key={t.id + '@' + area}
-                      title={t.name}
-                      onClick={() => onEdit(t)}
-                      isLast={i === items.length - 1}
-                      trailingText={FREQUENCIES[t.frequencyKey]?.label}
-                    />
-                  ))}
+                  {entries.map(({ task, last }, i) => {
+                    const freqLabel = FREQUENCIES[task.frequencyKey]?.label;
+                    const rel = last ? relativeFromNow(last.performedAt) : null;
+                    const subtitle = rel
+                      ? `Última: ${rel}${last.status === 'skipped' ? ' (adiada)' : ''}`
+                      : 'Nunca feita';
+                    return (
+                      <Row
+                        key={task.id + '@' + area}
+                        title={task.name}
+                        subtitle={subtitle}
+                        onClick={() => onEdit(task)}
+                        isLast={i === entries.length - 1}
+                        trailingText={freqLabel}
+                      />
+                    );
+                  })}
                 </div>
               </section>
             );

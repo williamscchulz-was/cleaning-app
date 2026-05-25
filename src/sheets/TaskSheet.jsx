@@ -78,15 +78,17 @@ export default function TaskSheet({ open, task, onClose, onSave, onDelete, defau
   }
 
   return (
-    <div className="fixed inset-0 z-30 flex items-end justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-30 flex items-end md:items-center justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full sm:w-[440px] sm:mb-6 surf-bg rounded-t-[28px] sm:rounded-[28px] sheet-up max-h-[88vh] overflow-y-auto no-scrollbar"
+        className="relative w-full md:w-[480px] md:max-h-[88vh] surf-bg rounded-t-[28px] md:rounded-[28px] sheet-up max-h-[88vh] overflow-y-auto no-scrollbar"
+        style={{ boxShadow: '0 30px 80px -20px rgba(0,0,0,0.35)' }}
       >
         <div className="sticky top-0 z-10 surf-bg px-4 pt-3 pb-3 flex items-center justify-between border-b bd-hairline" style={{ borderBottomWidth: '0.5px' }}>
           <button
             onClick={onClose}
+            aria-label="Cancelar"
             className="w-9 h-9 rounded-full surf-section flex items-center justify-center"
           >
             <X size={16} strokeWidth={2.4} />

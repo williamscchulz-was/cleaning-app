@@ -4,36 +4,64 @@ import { TitleHeader } from '../components/ui';
 import { FREQUENCIES } from '../lib/constants';
 import { formatDateBR, startOfWeek } from '../lib/dates';
 
+// A task was "expected" in a given week if, at the start of that week:
+//   1. It already existed (createdAt < weekStart), AND
+//   2. Its previous acknowledgement (done OR skipped) was older than its
+//      frequency cycle — i.e., it would have shown up as due that Monday.
+// This is the same definition as the live `isDue` used in TodayScreen,
+// just evaluated at a historical point in time.
+function wasExpectedInWeek(task, completionsForTask, weekStart) {
+  const createdAtMs = task.createdAt?.toDate?.()?.getTime?.() ?? 0;
+  if (createdAtMs >= weekStart.getTime()) return false;
+
+  const prior = completionsForTask
+    .filter((c) => c.performedAt && c.performedAt < weekStart)
+    .reduce((latest, c) => (!latest || c.performedAt > latest.performedAt ? c : latest), null);
+
+  const cycleMs = (FREQUENCIES[task.frequencyKey]?.weeks ?? 1) * 7 * 86400000;
+  if (!prior) return true; // never acknowledged before this week
+  return weekStart.getTime() - prior.performedAt.getTime() >= cycleMs;
+}
+
 function buildWeeks(completions, tasks, weeks = 12) {
   const today = new Date();
-  const result = [];
 
+  // Index completions by taskId once.
+  const byTask = new Map();
+  for (const c of completions) {
+    if (!byTask.has(c.taskId)) byTask.set(c.taskId, []);
+    byTask.get(c.taskId).push(c);
+  }
+
+  const result = [];
   for (let i = 0; i < weeks; i++) {
     const monday = startOfWeek(today);
     monday.setDate(monday.getDate() - i * 7);
     const nextMonday = new Date(monday);
     nextMonday.setDate(nextMonday.getDate() + 7);
 
-    const weekCompletions = completions.filter(
-      (c) => c.performedAt && c.performedAt >= monday && c.performedAt < nextMonday,
-    );
-    const doneTaskIds = new Set(
-      weekCompletions.filter((c) => c.status === 'done').map((c) => c.taskId),
-    );
     const expectedIds = new Set(
       tasks
-        .filter((t) => {
-          const w = FREQUENCIES[t.frequencyKey]?.weeks ?? 1;
-          return i % w === 0;
-        })
+        .filter((t) => wasExpectedInWeek(t, byTask.get(t.id) || [], monday))
         .map((t) => t.id),
     );
+
+    const doneTaskIds = new Set(
+      completions
+        .filter((c) =>
+          c.status === 'done' &&
+          c.performedAt && c.performedAt >= monday && c.performedAt < nextMonday,
+        )
+        .map((c) => c.taskId),
+    );
+
     const total = expectedIds.size;
     const done = [...doneTaskIds].filter((id) => expectedIds.has(id)).length;
 
     result.push({ date: monday, count: done, total });
   }
 
+  // Trim trailing weeks with nothing expected and nothing done.
   while (result.length > 1) {
     const tail = result[result.length - 1];
     if (tail.total === 0 && tail.count === 0) result.pop();

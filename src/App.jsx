@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { MoreHorizontal } from 'lucide-react';
 import BottomDock from './components/BottomDock';
 import Sidebar from './components/Sidebar';
@@ -99,16 +99,41 @@ function RealApp({ theme, toggleTheme }) {
     return it;
   }), [items, pending]);
 
+  // Clear pending entries as soon as the real snapshot reflects them. Avoids
+  // the optimistic overlay sticking around once Firestore has caught up.
+  useEffect(() => {
+    if (Object.keys(pending).length === 0) return;
+    setPending((p) => {
+      let changed = false;
+      const next = { ...p };
+      for (const [taskId, kind] of Object.entries(p)) {
+        const item = items.find((it) => it.task.id === taskId);
+        if (!item) continue;
+        const matches =
+          (kind === 'done'    && item.doneToday) ||
+          (kind === 'undone'  && !item.doneToday && !item.skippedToday) ||
+          (kind === 'skipped' && item.skippedToday);
+        if (matches) {
+          delete next[taskId];
+          changed = true;
+        }
+      }
+      return changed ? next : p;
+    });
+  }, [items, pending]);
+
   function setPendingFor(taskId, kind) {
     setPending((p) => ({ ...p, [taskId]: kind }));
-    // Auto-clear after 4s as a safety net (snapshot usually arrives in <500ms).
+    // Safety net in case the snapshot never reflects the change (write
+    // failed silently, user went offline, etc.). The effect above is the
+    // primary cleanup path.
     setTimeout(() => {
       setPending((p) => {
         if (p[taskId] !== kind) return p;
         const { [taskId]: _, ...rest } = p;
         return rest;
       });
-    }, 4000);
+    }, 6000);
   }
 
   if (authLoading) return <Splash />;
@@ -296,7 +321,7 @@ function RealApp({ theme, toggleTheme }) {
               )}
               {tab === 'tarefas' && (
                 <Catalogo
-                  tasks={tasks}
+                  items={items}
                   onAdd={handleAddTask}
                   onAddInArea={handleAddInArea}
                   onEdit={handleEditTask}
