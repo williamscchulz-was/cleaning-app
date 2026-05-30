@@ -3,6 +3,7 @@ import { MoreHorizontal } from 'lucide-react';
 import BottomDock from './components/BottomDock';
 import Sidebar from './components/Sidebar';
 import AppIcon from './components/AppIcon';
+import TodaySkeleton from './components/Skeleton';
 import { ToastProvider, useToast } from './components/Toast';
 import PickerScreen from './screens/PickerScreen';
 import TodayScreen from './screens/TodayScreen';
@@ -21,6 +22,7 @@ import {
 } from './lib/tasksApi';
 import { isSameDay } from './lib/dates';
 import { PEOPLE } from './lib/constants';
+import { haptics } from './lib/haptics';
 
 function isMocksRoute() {
   if (typeof window === 'undefined') return false;
@@ -31,8 +33,8 @@ const MocksGallery = lazy(() => import('./mocks/MocksGallery'));
 
 function Splash() {
   return (
-    <div className="min-h-screen flex items-center justify-center surf-bg">
-      <div className="animate-pulse">
+    <div className="h-[100dvh] flex items-center justify-center surf-bg">
+      <div className="soft-pulse">
         <AppIcon size={72} />
       </div>
     </div>
@@ -245,9 +247,11 @@ function RealApp({ theme, toggleTheme }) {
         }
         showToast({ message: 'Tarefa criada.' });
       }
+      haptics.medium();
       handleCloseSheet();
     } catch (err) {
       console.error('save task failed', err);
+      haptics.error();
       showToast({ message: 'Não consegui salvar — tenta de novo.' });
       throw err;
     }
@@ -276,6 +280,8 @@ function RealApp({ theme, toggleTheme }) {
   const showDock = isAdmin && tab !== 'preview' && tab !== 'mine';
   // Simone has no dock, so she needs a separate way into settings.
   const showFloatingSettings = !showDock && tab !== 'preview';
+  // First snapshot still loading and nothing cached yet → show skeleton.
+  const firstLoad = dataLoading && tasks.length === 0;
 
   return (
     <Shell
@@ -299,17 +305,17 @@ function RealApp({ theme, toggleTheme }) {
         }}
       >
         <div className="max-w-[440px] md:max-w-[640px] mx-auto">
-          {role === 'simone' && (
+          {firstLoad ? (
+            <TodaySkeleton />
+          ) : role === 'simone' ? (
             <TodayScreen
               items={effectiveItems}
               assignedToRole="simone"
               onToggle={handleToggleDone}
               onSkipRequest={handleSkipRequest}
             />
-          )}
-
-          {isAdmin && (
-            <>
+          ) : isAdmin ? (
+            <div key={tab} className="screen-in">
               {tab === 'home' && (
                 <AdminHome
                   person={adminPerson}
@@ -348,8 +354,8 @@ function RealApp({ theme, toggleTheme }) {
                   onBack={() => setTab('home')}
                 />
               )}
-            </>
-          )}
+            </div>
+          ) : null}
         </div>
       </main>
 
@@ -365,11 +371,10 @@ function RealApp({ theme, toggleTheme }) {
         <button
           onClick={() => setSettingsOpen(true)}
           aria-label="Mais opções"
-          className="absolute z-20 w-11 h-11 rounded-full surf-card txt-primary flex items-center justify-center active:scale-95 transition"
+          className="pressable absolute z-20 w-11 h-11 rounded-full surf-card txt-primary flex items-center justify-center shadow-md-token"
           style={{
             top: 'max(env(safe-area-inset-top), 12px)',
             right: 12,
-            boxShadow: '0 6px 18px -8px rgba(0,0,0,0.25)',
           }}
         >
           <MoreHorizontal size={18} />

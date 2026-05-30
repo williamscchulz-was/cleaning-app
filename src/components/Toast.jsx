@@ -52,15 +52,13 @@ function ToastRoot({ toast, onDismiss }) {
   return (
     <div
       className="fixed left-1/2 -translate-x-1/2 z-50 px-4 w-full max-w-[420px] pointer-events-none"
-      style={{ bottom: 'calc(env(safe-area-inset-bottom) + 80px)' }}
+      style={{ bottom: 'calc(env(safe-area-inset-bottom) + 86px)' }}
     >
       <div
         key={toast.id}
-        className="pointer-events-auto surf-card rounded-2xl shadow-xl flex items-center gap-3 pl-4 pr-2 py-3"
-        style={{
-          animation: 'toastIn 220ms cubic-bezier(.2,.8,.2,1) both',
-          boxShadow: '0 10px 28px -8px rgba(0,0,0,0.28)',
-        }}
+        role="status"
+        aria-live="polite"
+        className="toast-in pointer-events-auto surf-card rounded-2xl shadow-lg-token flex items-center gap-3 pl-4 pr-2 py-3"
       >
         {toast.icon && <span className="shrink-0">{toast.icon}</span>}
         <span className="flex-1 text-[14.5px] txt-primary leading-snug">
@@ -69,18 +67,12 @@ function ToastRoot({ toast, onDismiss }) {
         {toast.actionLabel && (
           <button
             onClick={handleAction}
-            className="shrink-0 px-3 h-9 rounded-full surf-accent-soft txt-accent text-[13.5px] font-semibold active:scale-95 transition"
+            className="pressable shrink-0 px-3 h-9 rounded-full surf-accent-soft txt-accent text-[13.5px] font-semibold"
           >
             {toast.actionLabel}
           </button>
         )}
       </div>
-      <style>{`
-        @keyframes toastIn {
-          from { opacity: 0; transform: translateY(12px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }

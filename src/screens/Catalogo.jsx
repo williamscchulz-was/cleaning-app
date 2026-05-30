@@ -70,7 +70,7 @@ export default function Catalogo({ items, onAdd, onAddInArea, onEdit, onBack }) 
                     </button>
                   )}
                 </div>
-                <div className="surf-card rounded-xl overflow-hidden">
+                <div className="surf-card rounded-xl overflow-hidden shadow-sm-token">
                   {entries.map(({ task, last }, i) => {
                     const freqLabel = FREQUENCIES[task.frequencyKey]?.label;
                     const rel = last ? relativeFromNow(last.performedAt) : null;

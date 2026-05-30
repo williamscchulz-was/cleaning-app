@@ -27,7 +27,7 @@ export default function AdminHome({ person, role, items, onAddTask, goTo }) {
 
       {totalTasks === 0 ? (
         <div className="px-4 mt-7">
-          <div className="surf-card rounded-xl p-6 text-center">
+          <div className="surf-card rounded-xl p-6 text-center shadow-sm-token">
             <div className="w-12 h-12 rounded-full surf-accent-soft mx-auto flex items-center justify-center">
               <Plus className="w-5 h-5 txt-accent" strokeWidth={2.5} />
             </div>
@@ -78,7 +78,7 @@ export default function AdminHome({ person, role, items, onAddTask, goTo }) {
               )}
               <button
                 onClick={() => goTo('preview')}
-                className="mt-4 w-full flex items-center justify-between px-3 h-10 rounded-lg surf-accent-soft active:scale-[0.99] transition"
+                className="pressable mt-4 w-full flex items-center justify-between px-3 h-10 rounded-lg surf-accent-soft"
               >
                 <span className="text-[14px] font-semibold txt-accent flex items-center gap-2">
                   <Eye size={15} strokeWidth={2.4} />
@@ -92,7 +92,7 @@ export default function AdminHome({ person, role, items, onAddTask, goTo }) {
           {/* "Minhas tarefas" — only show if admin has any task assigned to them. */}
           {mineTotal > 0 && (
             <div className="px-4 mt-3">
-              <div className="surf-card rounded-xl p-5">
+              <div className="surf-card rounded-xl p-5 shadow-sm-token">
                 <div className="flex items-baseline justify-between">
                   <span className="text-[13px] font-semibold uppercase tracking-wider txt-muted">
                     Pra mim hoje
@@ -119,7 +119,7 @@ export default function AdminHome({ person, role, items, onAddTask, goTo }) {
                 )}
                 <button
                   onClick={() => goTo('mine')}
-                  className="mt-4 w-full flex items-center justify-between px-3 h-10 rounded-lg surf-accent-soft active:scale-[0.99] transition"
+                  className="pressable mt-4 w-full flex items-center justify-between px-3 h-10 rounded-lg surf-accent-soft"
                 >
                   <span className="text-[14px] font-semibold txt-accent flex items-center gap-2">
                     <User size={15} strokeWidth={2.4} />

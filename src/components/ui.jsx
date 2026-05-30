@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { Check, ChevronRight, MoreHorizontal, Moon, Sun } from 'lucide-react';
 
 // Big iOS-style page title with optional pill on the right.
@@ -31,7 +32,7 @@ export function Section({ title, right, children, padded = true }) {
           {right}
         </div>
       )}
-      <div className="surf-card rounded-xl overflow-hidden">
+      <div className="surf-card rounded-xl overflow-hidden shadow-sm-token">
         {children}
       </div>
     </section>
@@ -85,34 +86,66 @@ export function Hairline({ inset = 0 }) {
   );
 }
 
-// Simple progress bar.
+// Progress bar with a gradient fill that springs to width. At 100% it gets
+// a brief settle; the fill carries a subtle gloss via the accent gradient.
 export function ProgressBar({ pct }) {
   return (
-    <div className="w-full h-1.5 surf-section rounded-full overflow-hidden">
+    <div className="w-full h-2 surf-section rounded-full overflow-hidden">
       <div
-        className="h-full surf-accent rounded-full"
+        className="h-full rounded-full"
         style={{
           width: `${pct}%`,
-          transition: 'width 500ms cubic-bezier(.2,.8,.2,1)',
+          background: 'linear-gradient(90deg, var(--accent), var(--accent-2))',
+          transition: 'width 620ms var(--ease-out)',
         }}
       />
     </div>
   );
 }
 
-// Empty/checked circle for marking tasks done.
+// Empty/checked circle for marking tasks done. When it transitions from
+// unchecked → checked it fires a one-shot burst ring + check-pop. The burst
+// is suppressed on first mount (so an already-done list doesn't flash).
 export function CheckCircle({ checked, size = 22 }) {
+  const [burst, setBurst] = useState(false);
+  const prev = useRef(checked);
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      prev.current = checked;
+      return;
+    }
+    if (checked && !prev.current) {
+      setBurst(true);
+      const t = setTimeout(() => setBurst(false), 560);
+      prev.current = checked;
+      return () => clearTimeout(t);
+    }
+    prev.current = checked;
+  }, [checked]);
+
   return (
-    <span
-      className="rounded-full flex items-center justify-center shrink-0 transition-all"
-      style={{
-        width: size,
-        height: size,
-        background: checked ? 'var(--accent)' : 'transparent',
-        border: checked ? 'none' : '1.5px solid var(--text-subtle)',
-      }}
-    >
-      {checked && <Check size={size * 0.55} strokeWidth={3.5} className="text-white check-pop" />}
+    <span className="relative inline-flex shrink-0" style={{ width: size, height: size }}>
+      {burst && (
+        <span
+          className="burst absolute inset-0 rounded-full pointer-events-none"
+          style={{ boxShadow: '0 0 0 2px var(--accent)' }}
+        />
+      )}
+      <span
+        className="rounded-full flex items-center justify-center"
+        style={{
+          width: size,
+          height: size,
+          background: checked ? 'var(--accent)' : 'transparent',
+          border: checked ? '1.5px solid var(--accent)' : '1.5px solid var(--text-subtle)',
+          transition: 'background-color 200ms var(--ease-snap), border-color 200ms var(--ease-snap)',
+        }}
+      >
+        {checked && <Check size={size * 0.55} strokeWidth={3.5} className="text-white check-pop" />}
+      </span>
     </span>
   );
 }
@@ -122,7 +155,7 @@ export function Pill({ children, onClick, active = true }) {
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-1 px-3 h-8 rounded-full text-[14px] font-semibold transition active:scale-[0.97] ${
+      className={`pressable inline-flex items-center gap-1 px-3 h-8 rounded-full text-[14px] font-semibold ${
         active ? 'surf-accent-soft txt-accent' : 'surf-section txt-muted'
       }`}
     >
@@ -131,13 +164,15 @@ export function Pill({ children, onClick, active = true }) {
   );
 }
 
-// Filled accent button (large, for primary CTAs).
+// Filled accent button (large, for primary CTAs). Subtle accent-tinted
+// shadow gives it lift; presses use the spring scale.
 export function PrimaryButton({ children, onClick, disabled, fullWidth, leadingIcon: Icon }) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center justify-center gap-2 px-6 h-12 rounded-full surf-accent txt-on-accent text-[15px] font-semibold active:scale-[0.98] disabled:opacity-40 transition ${fullWidth ? 'w-full' : ''}`}
+      className={`pressable-lg inline-flex items-center justify-center gap-2 px-6 h-12 rounded-full surf-accent txt-on-accent text-[15px] font-semibold disabled:opacity-40 ${fullWidth ? 'w-full' : ''}`}
+      style={disabled ? undefined : { boxShadow: '0 8px 20px -8px var(--accent)' }}
     >
       {Icon && <Icon size={16} strokeWidth={2.5} />}
       {children}
@@ -151,7 +186,7 @@ export function ThemeToggle({ theme, onToggle }) {
     <button
       onClick={onToggle}
       aria-label={theme === 'dark' ? 'Tema claro' : 'Tema escuro'}
-      className="inline-flex items-center justify-center w-11 h-11 rounded-full surf-section txt-primary active:scale-95 transition"
+      className="pressable inline-flex items-center justify-center w-11 h-11 rounded-full surf-section txt-primary"
     >
       {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
     </button>
@@ -164,7 +199,7 @@ export function MoreButton({ onClick }) {
     <button
       onClick={onClick}
       aria-label="Mais opções"
-      className="inline-flex items-center justify-center w-11 h-11 rounded-full surf-section txt-primary active:scale-95 transition"
+      className="pressable inline-flex items-center justify-center w-11 h-11 rounded-full surf-section txt-primary"
     >
       <MoreHorizontal size={18} />
     </button>

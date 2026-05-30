@@ -105,7 +105,7 @@ export default function Historico({ completions, tasks, onBack }) {
             return (
               <div
                 key={h.date.toISOString()}
-                className="surf-card rounded-xl p-3.5 flex items-center gap-4 fade-slide"
+                className="surf-card rounded-xl p-3.5 flex items-center gap-4 shadow-sm-token fade-slide"
                 style={{ animationDelay: `${i * 30}ms` }}
               >
                 <div className="w-12 h-12 rounded-lg surf-accent-soft flex flex-col items-center justify-center shrink-0">

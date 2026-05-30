@@ -1,5 +1,6 @@
 import { History, Home as HomeIcon, ListChecks, MoreHorizontal } from 'lucide-react';
 import AppIcon from './AppIcon';
+import { haptics } from '../lib/haptics';
 
 const TABS = [
   { k: 'home',      label: 'Início',    Icon: HomeIcon },
@@ -9,6 +10,11 @@ const TABS = [
 
 // Vertical nav rail used on tablet+. Replaces the floating BottomDock.
 export default function Sidebar({ tab, setTab, onOpenSettings }) {
+  function go(k) {
+    if (k !== tab) haptics.light();
+    setTab(k);
+  }
+
   return (
     <aside
       className="hidden md:flex md:flex-col md:w-[240px] md:shrink-0 md:h-full surf-bg border-r bd-hairline"
@@ -29,8 +35,10 @@ export default function Sidebar({ tab, setTab, onOpenSettings }) {
           return (
             <button
               key={k}
-              onClick={() => setTab(k)}
-              className={`w-full flex items-center gap-3 px-3 h-11 rounded-xl text-left transition ${active ? 'surf-accent-soft' : 'surf-hover'}`}
+              onClick={() => go(k)}
+              aria-current={active ? 'page' : undefined}
+              className={`pressable w-full flex items-center gap-3 px-3 h-11 rounded-xl text-left ${active ? 'surf-accent-soft' : 'surf-hover'}`}
+              style={{ transition: 'background-color 200ms var(--ease-snap)' }}
             >
               <Icon
                 size={18}
@@ -47,8 +55,8 @@ export default function Sidebar({ tab, setTab, onOpenSettings }) {
 
       <div className="px-3 pb-3">
         <button
-          onClick={onOpenSettings}
-          className="w-full flex items-center gap-3 px-3 h-11 rounded-xl text-left surf-hover"
+          onClick={() => { haptics.light(); onOpenSettings(); }}
+          className="pressable w-full flex items-center gap-3 px-3 h-11 rounded-xl text-left surf-hover"
         >
           <MoreHorizontal size={18} className="txt-muted" />
           <span className="text-[15px] font-semibold txt-primary">Mais</span>

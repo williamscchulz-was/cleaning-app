@@ -45,9 +45,15 @@
     --text-subtle:  #C7C7CC;
     --hairline:     #E5E5EA;
     --accent:       #820AD1;
+    --accent-2:     #A640E8;
     --accent-soft:  #F0E7FB;
     --on-accent:    #FFFFFF;
     --danger:       #FF3B30;
+    --shadow-sm:    0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md:    0 4px 16px -4px rgba(0,0,0,0.10);
+    --shadow-lg:    0 12px 32px -8px rgba(0,0,0,0.16);
+    --shimmer:      rgba(0,0,0,0.045);
+    --shimmer-hi:   rgba(0,0,0,0.085);
   }
   .theme-dark {
     --bg:           #000000;
@@ -58,9 +64,15 @@
     --text-subtle:  #48484A;
     --hairline:     #38383A;
     --accent:       #A335E5;
+    --accent-2:     #C264FF;
     --accent-soft:  rgba(163,53,229,0.16);
     --on-accent:    #FFFFFF;
     --danger:       #FF453A;
+    --shadow-sm:    0 1px 2px rgba(0,0,0,0.30);
+    --shadow-md:    0 4px 16px -4px rgba(0,0,0,0.50);
+    --shadow-lg:    0 12px 36px -8px rgba(0,0,0,0.65);
+    --shimmer:      rgba(255,255,255,0.04);
+    --shimmer-hi:   rgba(255,255,255,0.09);
   }
 
   .surf-bg          { background-color: var(--bg); }
@@ -83,25 +95,142 @@
 
   .ring-accent { box-shadow: 0 0 0 2px var(--accent); }
 
+  .shadow-sm-token { box-shadow: var(--shadow-sm); }
+  .shadow-md-token { box-shadow: var(--shadow-md); }
+  .shadow-lg-token { box-shadow: var(--shadow-lg); }
+
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
+/* ─────────────────────────  Motion system  ─────────────────────────
+   Spring-flavored cubic-beziers used consistently across the app.
+   --ease-spring: gentle overshoot for entrances / appearance
+   --ease-snap:   crisp settle for presses and toggles
+   --ease-out:    standard decelerate                                   */
+:root {
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --ease-snap:   cubic-bezier(.2, .8, .2, 1);
+  --ease-out:    cubic-bezier(.16, 1, .3, 1);
+}
+
+/* Press feedback: any element with .pressable scales down on active. */
+.pressable {
+  transition: transform 140ms var(--ease-snap);
+  -webkit-user-select: none;
+  user-select: none;
+}
+.pressable:active { transform: scale(0.96); }
+
+.pressable-sm:active { transform: scale(0.92); }
+.pressable-lg { transition: transform 160ms var(--ease-snap); }
+.pressable-lg:active { transform: scale(0.975); }
+
+/* Entrance: fade + rise. */
 @keyframes fadeSlide {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.fade-slide { animation: fadeSlide 320ms ease-out both; }
+.fade-slide { animation: fadeSlide 380ms var(--ease-out) both; }
 
+/* Staggered list entrance — set --i on each child for a cascade. */
+.stagger > * {
+  animation: fadeSlide 420ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+/* Bottom sheet rise. */
 @keyframes sheetUp {
   from { transform: translateY(100%); }
   to   { transform: translateY(0); }
 }
-.sheet-up { animation: sheetUp 300ms cubic-bezier(.2,.8,.2,1) both; }
+.sheet-up { animation: sheetUp 340ms var(--ease-out) both; }
 
+/* Centered modal pop (tablet+). */
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.modal-pop { animation: modalPop 260ms var(--ease-spring) both; }
+
+/* Backdrop fade. */
+@keyframes backdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.backdrop-in { animation: backdropIn 220ms ease-out both; }
+
+/* The check mark popping in when a task is completed. */
 @keyframes checkPop {
-  0%   { transform: scale(0.5); opacity: 0; }
-  60%  { transform: scale(1.15); opacity: 1; }
+  0%   { transform: scale(0.4); opacity: 0; }
+  55%  { transform: scale(1.18); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
-.check-pop { animation: checkPop 240ms cubic-bezier(.34,1.56,.64,1) both; }
+.check-pop { animation: checkPop 300ms var(--ease-spring) both; }
+
+/* A ring that bursts outward when a task is marked done. */
+@keyframes burst {
+  0%   { transform: scale(0.6); opacity: 0.55; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+.burst { animation: burst 520ms var(--ease-out) forwards; }
+
+/* Shimmer sweep — skeletons + progress bar gloss. */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(
+    100deg,
+    var(--shimmer) 30%,
+    var(--shimmer-hi) 50%,
+    var(--shimmer) 70%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* Confetti fall for the celebration moment. */
+@keyframes confettiFall {
+  0%   { transform: translate3d(0, -10px, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate3d(var(--dx, 0), 92vh, 0) rotate(var(--rot, 360deg)); opacity: 0; }
+}
+.confetti-piece {
+  animation: confettiFall var(--dur, 2200ms) var(--ease-out) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+/* Gentle pulse for splash/loading icons. */
+@keyframes softPulse {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: 0.6; transform: scale(0.94); }
+}
+.soft-pulse { animation: softPulse 1.5s ease-in-out infinite; }
+
+/* Cross-fade for tab/screen swaps. */
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.screen-in { animation: screenIn 280ms var(--ease-out) both; }
+
+/* Toast rise. */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.toast-in { animation: toastIn 260ms var(--ease-spring) both; }
+
+/* Respect users who prefer reduced motion: keep opacity fades, drop
+   movement/scale/loops. This is what professional apps do. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .shimmer { animation: none; background: var(--shimmer); }
+  .pressable:active, .pressable-sm:active, .pressable-lg:active { transform: none; }
+}

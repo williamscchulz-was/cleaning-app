@@ -2,12 +2,14 @@ import { useState } from 'react';
 import AppIcon from '../components/AppIcon';
 import { Section, Row } from '../components/ui';
 import { PEOPLE, ROLE_KEYS } from '../lib/constants';
+import { haptics } from '../lib/haptics';
 
 export default function PickerScreen({ onPick }) {
   const [busy, setBusy] = useState(null);
 
   async function handlePick(roleKey) {
     if (busy) return;
+    haptics.medium();
     setBusy(roleKey);
     try {
       await onPick(roleKey);
@@ -18,7 +20,7 @@ export default function PickerScreen({ onPick }) {
   }
 
   return (
-    <div className="pb-12">
+    <div className="pb-12 fade-slide">
       <div className="px-5 pt-10 pb-6">
         <div className="flex items-center gap-3">
           <AppIcon size={48} />

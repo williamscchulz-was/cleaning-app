@@ -9,12 +9,15 @@ export default function SkipSheet({ open, task, onClose, onConfirm }) {
 
   return (
     <div className="fixed inset-0 z-30 flex items-end md:items-center justify-center" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/40" />
+      <div className="backdrop-in absolute inset-0 bg-black/40" />
       <div
         onClick={(e) => e.stopPropagation()}
         className="relative w-full md:w-[440px] surf-bg rounded-t-[28px] md:rounded-[28px] sheet-up pb-6"
         style={{ boxShadow: '0 30px 80px -20px rgba(0,0,0,0.35)' }}
       >
+        <div className="md:hidden flex justify-center pt-2.5">
+          <span className="w-9 h-1 rounded-full" style={{ background: 'var(--text-subtle)' }} />
+        </div>
         <div className="px-5 pt-5 pb-4 text-center">
           <div className="mx-auto w-12 h-12 rounded-full surf-accent-soft flex items-center justify-center">
             <RotateCcw size={20} className="txt-accent" strokeWidth={2.2} />
