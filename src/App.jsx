@@ -4,6 +4,7 @@ import BottomDock from './components/BottomDock';
 import Sidebar from './components/Sidebar';
 import AppIcon from './components/AppIcon';
 import TodaySkeleton from './components/Skeleton';
+import SplashScreen from './components/SplashScreen';
 import { ToastProvider, useToast } from './components/Toast';
 import PickerScreen from './screens/PickerScreen';
 import TodayScreen from './screens/TodayScreen';
@@ -60,6 +61,10 @@ function Shell({ sidebar, children }) {
 
 export default function App() {
   const { theme, toggle: toggleTheme } = useTheme();
+  // Show the animated splash once per app load. It overlays the app while
+  // the first data loads and dismisses itself on a timer (never gating).
+  const [splashDone, setSplashDone] = useState(false);
+
   if (isMocksRoute()) {
     return (
       <Suspense fallback={<Splash />}>
@@ -70,6 +75,7 @@ export default function App() {
   return (
     <ToastProvider>
       <RealApp theme={theme} toggleTheme={toggleTheme} />
+      {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
     </ToastProvider>
   );
 }
