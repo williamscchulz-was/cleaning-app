@@ -30,7 +30,13 @@ function isMocksRoute() {
   return new URLSearchParams(window.location.search).get('mocks') === '1';
 }
 
+function isPdfMockRoute() {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('pdf') === '1';
+}
+
 const MocksGallery = lazy(() => import('./mocks/MocksGallery'));
+const PdfMock = lazy(() => import('./mocks/PdfMock'));
 
 function Splash() {
   return (
@@ -69,6 +75,13 @@ export default function App() {
     return (
       <Suspense fallback={<Splash />}>
         <MocksGallery />
+      </Suspense>
+    );
+  }
+  if (isPdfMockRoute()) {
+    return (
+      <Suspense fallback={<Splash />}>
+        <PdfMock />
       </Suspense>
     );
   }
