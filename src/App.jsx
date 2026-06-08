@@ -15,6 +15,7 @@ import Preview from './screens/Preview';
 import TaskSheet from './sheets/TaskSheet';
 import SkipSheet from './sheets/SkipSheet';
 import SettingsSheet from './sheets/SettingsSheet';
+import ExportSheet from './sheets/ExportSheet';
 import { useAuth } from './hooks/useAuth';
 import { useDueTasks } from './hooks/useDueTasks';
 import { useTheme } from './hooks/useTheme';
@@ -104,6 +105,7 @@ function RealApp({ theme, toggleTheme }) {
   const [defaultAreasForNew, setDefaultAreasForNew] = useState(null);
   const [skipTarget, setSkipTarget] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   // Optimistic toggle/skip overlays. Keyed by taskId → 'done' | 'undone' | 'skipped'.
   // The snapshot is the source of truth; this just bridges the network gap so taps
@@ -341,6 +343,7 @@ function RealApp({ theme, toggleTheme }) {
                   role={role}
                   items={effectiveItems}
                   onAddTask={handleAddTask}
+                  onExport={() => setExportOpen(true)}
                   goTo={setTab}
                 />
               )}
@@ -421,6 +424,12 @@ function RealApp({ theme, toggleTheme }) {
         onToggleTheme={toggleTheme}
         role={role}
         onSwitchUser={handleSwitchUser}
+      />
+      <ExportSheet
+        open={exportOpen}
+        items={effectiveItems}
+        onClose={() => setExportOpen(false)}
+        showToast={showToast}
       />
     </Shell>
   );

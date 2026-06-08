@@ -1,9 +1,9 @@
-import { ChevronRight, Eye, History, ListChecks, Plus, User } from 'lucide-react';
+import { ChevronRight, Eye, History, ListChecks, Plus, Share2, User } from 'lucide-react';
 import { PrimaryButton, Row, Section, TitleHeader } from '../components/ui';
 import { AREAS, AREA_ICONS, ICON_FALLBACK, PEOPLE } from '../lib/constants';
 import { formatDateBR } from '../lib/dates';
 
-export default function AdminHome({ person, role, items, onAddTask, goTo }) {
+export default function AdminHome({ person, role, items, onAddTask, onExport, goTo }) {
   const today = new Date();
   const date = formatDateBR(today);
 
@@ -76,16 +76,22 @@ export default function AdminHome({ person, role, items, onAddTask, goTo }) {
                   </p>
                 </div>
               )}
-              <button
-                onClick={() => goTo('preview')}
-                className="pressable mt-4 w-full flex items-center justify-between px-3 h-10 rounded-lg surf-accent-soft"
-              >
-                <span className="text-[14px] font-semibold txt-accent flex items-center gap-2">
-                  <Eye size={15} strokeWidth={2.4} />
-                  Espiar a tela da Simone
-                </span>
-                <ChevronRight size={15} className="txt-accent" strokeWidth={2.5} />
-              </button>
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={() => goTo('preview')}
+                  className="pressable flex-1 flex items-center justify-center gap-2 h-10 rounded-lg surf-accent-soft"
+                >
+                  <Eye size={15} strokeWidth={2.4} className="txt-accent" />
+                  <span className="text-[13.5px] font-semibold txt-accent">Espiar</span>
+                </button>
+                <button
+                  onClick={onExport}
+                  className="pressable flex-1 flex items-center justify-center gap-2 h-10 rounded-lg surf-accent-soft"
+                >
+                  <Share2 size={15} strokeWidth={2.4} className="txt-accent" />
+                  <span className="text-[13.5px] font-semibold txt-accent">Enviar lista</span>
+                </button>
+              </div>
             </div>
           </div>
 
