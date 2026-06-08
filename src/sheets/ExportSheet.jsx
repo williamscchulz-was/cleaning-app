@@ -1,13 +1,16 @@
 import { useMemo, useState } from 'react';
-import { Share2, X } from 'lucide-react';
-import { buildExportGroups, pdfFilename, todayLabel } from '../lib/exportData';
+import { FileText, MessageSquareText, Share2, X } from 'lucide-react';
+import {
+  buildDailyText, buildExportGroups, pdfFilename, shareTextMessage, todayLabel,
+} from '../lib/exportData';
 import { haptics } from '../lib/haptics';
 
-// Bottom sheet that previews the daily list count, lets the admin add a
-// recadinho, and shares the generated PDF via the native share sheet
-// (WhatsApp appears there on mobile). jsPDF is loaded lazily on share.
+// Bottom sheet to send Simone the day's list — as a WhatsApp message (text)
+// or as a PDF. Text shares instantly (lands in the chat); PDF lazy-loads
+// jsPDF only when chosen. Both go through the native share sheet on mobile.
 export default function ExportSheet({ open, items, onClose, showToast }) {
   const [note, setNote] = useState('');
+  const [format, setFormat] = useState('texto'); // 'texto' | 'pdf'
   const [busy, setBusy] = useState(false);
 
   const { groups, count } = useMemo(
@@ -21,29 +24,32 @@ export default function ExportSheet({ open, items, onClose, showToast }) {
     if (busy || count === 0) return;
     setBusy(true);
     try {
-      const { buildDailyPdf, sharePdf } = await import('../lib/exportPdf');
-      const doc = buildDailyPdf({
-        dateLabel: todayLabel(),
-        note,
-        groups,
-        assigneeName: 'Simone',
-      });
-      const result = await sharePdf(doc, {
-        filename: pdfFilename(),
-        title: 'Tarefas do dia — Simone',
-        text: 'Tarefas do dia pra Simone 💜',
-      });
-      haptics.medium();
-      if (result === 'downloaded') {
-        showToast?.({ message: 'PDF baixado — anexe no WhatsApp pra enviar.' });
-      } else if (result === 'shared') {
-        showToast?.({ message: 'Lista compartilhada!' });
+      if (format === 'texto') {
+        const text = buildDailyText({ dateLabel: todayLabel(), note, groups, assigneeName: 'Simone' });
+        const result = await shareTextMessage(text);
+        haptics.medium();
+        if (result === 'copied') showToast?.({ message: 'Texto copiado — cole no WhatsApp.' });
+        else if (result === 'whatsapp') showToast?.({ message: 'Abrindo o WhatsApp…' });
+        else if (result === 'shared') showToast?.({ message: 'Lista compartilhada!' });
+        else if (result === 'failed') { haptics.error(); showToast?.({ message: 'Não consegui compartilhar.' }); }
+        if (result !== 'cancelled' && result !== 'failed') onClose();
+      } else {
+        const { buildDailyPdf, sharePdf } = await import('../lib/exportPdf');
+        const doc = buildDailyPdf({ dateLabel: todayLabel(), note, groups, assigneeName: 'Simone' });
+        const result = await sharePdf(doc, {
+          filename: pdfFilename(),
+          title: 'Tarefas do dia — Simone',
+          text: 'Tarefas do dia pra Simone 💜',
+        });
+        haptics.medium();
+        if (result === 'downloaded') showToast?.({ message: 'PDF baixado — anexe no WhatsApp.' });
+        else if (result === 'shared') showToast?.({ message: 'Lista compartilhada!' });
+        if (result !== 'cancelled') onClose();
       }
-      if (result !== 'cancelled') onClose();
     } catch (err) {
-      console.error('export pdf failed', err);
+      console.error('export failed', err);
       haptics.error();
-      showToast?.({ message: 'Não consegui gerar o PDF — tenta de novo.' });
+      showToast?.({ message: 'Não consegui gerar — tenta de novo.' });
     } finally {
       setBusy(false);
     }
@@ -77,9 +83,26 @@ export default function ExportSheet({ open, items, onClose, showToast }) {
         </div>
 
         <div className="px-4 pt-4">
-          <p className="text-[13.5px] txt-muted leading-relaxed">
-            Gera um PDF com as tarefas pendentes de hoje e abre o
-            compartilhamento — o WhatsApp aparece na lista.
+          {/* format toggle */}
+          <div className="surf-section rounded-xl p-1 flex gap-1">
+            <FormatTab
+              active={format === 'texto'}
+              onClick={() => setFormat('texto')}
+              Icon={MessageSquareText}
+              label="Texto"
+            />
+            <FormatTab
+              active={format === 'pdf'}
+              onClick={() => setFormat('pdf')}
+              Icon={FileText}
+              label="PDF"
+            />
+          </div>
+
+          <p className="mt-3 text-[13px] txt-muted leading-relaxed">
+            {format === 'texto'
+              ? 'Manda a lista como mensagem — aparece direto no chat, sem baixar nada.'
+              : 'Gera um PDF limpo com checkboxes pra ela marcar. Bom pra imprimir.'}
           </p>
 
           <div className="mt-4 surf-card rounded-xl px-4 py-3.5 flex items-center justify-between shadow-sm-token">
@@ -117,5 +140,19 @@ export default function ExportSheet({ open, items, onClose, showToast }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function FormatTab({ active, onClick, Icon, label }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 inline-flex items-center justify-center gap-2 h-10 rounded-lg text-[14px] font-semibold transition ${
+        active ? 'surf-card txt-accent shadow-sm-token' : 'txt-muted'
+      }`}
+    >
+      <Icon size={16} strokeWidth={2.2} />
+      {label}
+    </button>
   );
 }

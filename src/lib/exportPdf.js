@@ -1,137 +1,111 @@
 import { jsPDF } from 'jspdf';
 
-const ACCENT = [130, 10, 209];     // #820AD1
-const ACCENT_SOFT = [240, 231, 251]; // #F0E7FB
-const INK = [20, 20, 22];
-const MUTED = [140, 140, 150];
-const HAIR = [228, 228, 232];
+const ACCENT = [130, 10, 209];   // #820AD1
+const INK = [28, 28, 30];
+const MUTED = [150, 150, 158];
+const HAIR = [232, 232, 236];
 
-// Draw a tiny house+sparkle mark using vector primitives (no SVG needed).
-function drawMark(doc, x, y, s, color) {
-  doc.setFillColor(...color);
-  // roof triangle
-  doc.triangle(x, y + s * 0.55, x + s / 2, y, x + s, y + s * 0.55, 'F');
-  // body
-  doc.rect(x + s * 0.16, y + s * 0.5, s * 0.68, s * 0.5, 'F');
-  // sparkle dot
-  doc.circle(x + s * 0.96, y + s * 0.1, s * 0.08, 'F');
-}
-
-// Build the daily list as a jsPDF document. Returns the doc (caller decides
-// whether to share, download, or get a blob).
+// Clean, minimal daily list. White page, one accent colour used sparingly,
+// generous spacing, big checkboxes — easy to read on a phone and to print in
+// black & white. Returns the jsPDF doc.
 export function buildDailyPdf({ dateLabel, note, groups, assigneeName = 'Simone' }) {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const W = doc.internal.pageSize.getWidth();   // 595
   const H = doc.internal.pageSize.getHeight();  // 842
-  const M = 44;
+  const M = 48;
   const contentW = W - M * 2;
+  let y = 64;
 
-  doc.setFont('helvetica', 'normal');
-
-  // ── header band ──
-  const bandH = 128;
-  doc.setFillColor(...ACCENT);
-  doc.rect(0, 0, W, bandH, 'F');
-
-  drawMark(doc, M, 34, 20, [255, 255, 255]);
-  doc.setTextColor(255, 255, 255);
+  // ── masthead ──
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(15);
-  doc.text('Lumen', M + 30, 50);
+  doc.setFontSize(10);
+  doc.setTextColor(...ACCENT);
+  doc.text('L U M E N', M, y);
+  y += 26;
 
-  doc.setFontSize(24);
-  doc.text('Tarefas do dia', M, 92);
+  doc.setFontSize(28);
+  doc.setTextColor(...INK);
+  doc.text('Tarefas do dia', M, y);
+  y += 20;
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(11);
-  doc.setTextColor(235, 222, 250);
-  doc.text(`${dateLabel}  ·  para ${assigneeName}`, M, 112);
+  doc.setFontSize(12);
+  doc.setTextColor(...MUTED);
+  doc.text(`${dateLabel}  ·  para ${assigneeName}`, M, y);
+  y += 18;
 
-  let y = bandH + 30;
+  // accent rule
+  doc.setDrawColor(...ACCENT);
+  doc.setLineWidth(2);
+  doc.line(M, y, M + 40, y);
+  y += 26;
 
   // ── optional note ──
   if (note && note.trim()) {
-    const lines = doc.splitTextToSize(note.trim(), contentW - 28);
-    const boxH = 18 + lines.length * 15;
-    doc.setFillColor(...ACCENT_SOFT);
-    doc.roundedRect(M, y, contentW, boxH, 8, 8, 'F');
-    doc.setTextColor(91, 22, 144);
+    const lines = doc.splitTextToSize(note.trim(), contentW - 16);
+    doc.setDrawColor(...ACCENT);
+    doc.setLineWidth(2.5);
+    doc.line(M, y - 8, M, y - 8 + lines.length * 16 + 4); // left accent bar
+    doc.setFont('helvetica', 'italic');
     doc.setFontSize(12);
-    doc.text(lines, M + 14, y + 22);
-    y += boxH + 22;
+    doc.setTextColor(...INK);
+    doc.text(lines, M + 14, y + 4);
+    y += lines.length * 16 + 22;
+    doc.setFont('helvetica', 'normal');
   }
 
-  // ── summary line ──
-  const count = groups.reduce((n, [, items]) => n + items.length, 0);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
-  doc.setTextColor(...INK);
-  doc.text(`${count} ${count === 1 ? 'tarefa' : 'tarefas'} pra hoje`, M, y);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(...MUTED);
-  doc.text('Marque conforme for fazendo', W - M, y, { align: 'right' });
-  y += 22;
-
   // ── groups ──
-  const bottomLimit = H - 56;
+  const bottomLimit = H - 60;
   const ensure = (needed) => {
     if (y + needed > bottomLimit) {
       doc.addPage();
-      y = M + 8;
+      y = 64;
     }
   };
 
-  groups.forEach(([area, items]) => {
-    ensure(46);
-    // area header
+  const BOX = 15;       // checkbox size
+  const ROW_GAP = 17;   // space between rows
+  const LINE = 15;      // text line height
+
+  groups.forEach(([area, items], gi) => {
+    ensure(54);
+    if (gi > 0) y += 8;
+
+    // area label
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
     doc.setTextColor(...ACCENT);
     doc.text(area.toUpperCase(), M, y);
-    y += 8;
-    doc.setDrawColor(...HAIR);
-    doc.setLineWidth(0.8);
-    doc.line(M, y, W - M, y);
-    y += 16;
+    y += 18;
 
     items.forEach((t) => {
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(12);
-      const nameLines = doc.splitTextToSize(t.name, contentW - 90);
-      const noteLines = t.notes ? doc.splitTextToSize(`↳ ${t.notes}`, contentW - 40) : [];
-      const rowH = Math.max(18, nameLines.length * 15) + (noteLines.length ? noteLines.length * 13 + 2 : 0);
-      ensure(rowH + 4);
+      doc.setFontSize(13);
+      const nameLines = doc.splitTextToSize(t.name, contentW - 34);
+      const noteLines = t.notes ? doc.splitTextToSize(t.notes, contentW - 34) : [];
+      const rowH = nameLines.length * LINE + (noteLines.length ? noteLines.length * 13 + 3 : 0);
+      ensure(rowH + ROW_GAP);
 
-      // checkbox
-      doc.setDrawColor(190, 190, 196);
-      doc.setLineWidth(1.4);
-      doc.roundedRect(M, y - 10, 13, 13, 3, 3, 'S');
+      // checkbox aligned to first text line
+      doc.setDrawColor(180, 180, 188);
+      doc.setLineWidth(1.3);
+      doc.roundedRect(M, y - 11, BOX, BOX, 3.5, 3.5, 'S');
 
-      // name
+      // task name
       doc.setTextColor(...INK);
-      doc.text(nameLines, M + 24, y);
+      doc.text(nameLines, M + 28, y);
 
-      // freq (right)
-      if (t.freq) {
-        doc.setFontSize(9.5);
-        doc.setTextColor(...MUTED);
-        doc.text(t.freq, W - M, y, { align: 'right' });
-        doc.setFontSize(12);
-      }
-
-      let rowY = y + nameLines.length * 15;
-      // notes
+      let rowY = y + nameLines.length * LINE;
       if (noteLines.length) {
-        doc.setFontSize(10);
-        doc.setTextColor(...ACCENT);
-        doc.text(noteLines, M + 24, rowY);
-        rowY += noteLines.length * 13;
+        doc.setFontSize(11);
+        doc.setTextColor(...MUTED);
+        doc.text(noteLines, M + 28, rowY + 1);
+        rowY += noteLines.length * 13 + 1;
       }
-      y = rowY + 8;
+      y = rowY + (ROW_GAP - LINE) + 6;
     });
 
-    y += 10;
+    y += 8;
   });
 
   // ── footer on every page ──
@@ -140,13 +114,13 @@ export function buildDailyPdf({ dateLabel, note, groups, assigneeName = 'Simone'
     doc.setPage(p);
     doc.setDrawColor(...HAIR);
     doc.setLineWidth(0.8);
-    doc.line(M, H - 40, W - M, H - 40);
+    doc.line(M, H - 44, W - M, H - 44);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(...MUTED);
-    doc.text(`Gerado pelo Lumen · ${dateLabel}`, M, H - 26);
+    doc.text(`Lumen · ${dateLabel}`, M, H - 30);
     if (pageCount > 1) {
-      doc.text(`${p}/${pageCount}`, W - M, H - 26, { align: 'right' });
+      doc.text(`${p}/${pageCount}`, W - M, H - 30, { align: 'right' });
     }
   }
 
